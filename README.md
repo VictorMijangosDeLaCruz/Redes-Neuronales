@@ -38,15 +38,9 @@ Además de los algoritmos típicos dentro de la familia de redes neuronales, se 
 - &nbsp; 6.3. Tipos de redes recurrentes
 - &nbsp; 6.4. Redes bidireccionales
 - &nbsp; 6.5. Long-Short Term Memory (LSTM) y Gated Recurrent Unit (GRU)
-7. Redes neuronales no supervisadas
-- &nbsp; 7.1. Máquinas de Boltzman
-- &nbsp; 7.2. AutoEncoders
-8. Redes generativas adversariales (GANs)
-- &nbsp; 8.3. Redes generativas
-- &nbsp; 8.4. Redes generativas adversariales
-9. Aprendizaje geométrico profundo
-- &nbsp; 9.1. Estructura y grupo de simetrías
-- &nbsp; 9.2. DeepSets
-- &nbsp; 9.3. Redes convolucionales
-- &nbsp; 9.4. Redes atencionales (Transformers)
-- &nbsp; 9.5. Redes neuronales de gráficas
+
+
+## Colaboradires
+
+[@veroarriola](https://github.com/veroarriola)
+[@milmor](https://github.com/milmor)
