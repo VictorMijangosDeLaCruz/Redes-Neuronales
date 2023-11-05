@@ -1,6 +1,6 @@
 # Redes Neuronales
 
-Repositorio del curso de Redes neuronales, en la Facultad de Ciencias, UNAM. 
+Este repositorio contiene material del curso de Redes neuronales, en la Facultad de Ciencias, UNAM. Y ha sido desarrollado por varios contribuidores bajo el proyecto PAPIME PE102723.
 
 ## Objetivo del curso: 
 El curso comprenderá el modelo matemático de la red neuronal que da pie a las redes neuronales artificiales y su generalización. Se revisarán los temas más prominentes sobre redes neuronales: su modelación, el concepto de arquitectura y el proceso de aprendizaje que conllevan.
@@ -8,19 +8,11 @@ Asimismo, se profundizará en algoritmos específicos de la familia de redes neu
 También se profundizará en la implementación de las redes neuronales, tanto la programación de los módulos básicos, como el uso de paquetería especializada en estos (tensorflow, pytorch).
 Además de los algoritmos típicos dentro de la familia de redes neuronales, se impulsará la creación de nuevas arquitecturas que respondan a problemas específicos. Se abordará también la teoría de aprendizaje geométrico profundo que plantea un marco matemático para el planteamiento de diferentes arquitecturas a problemas estructurados.
 
-## Temario
+## Temas
 
 1. Introducción
-- &nbsp; 1.1 Panorama histórico de las redes neuronales
-- &nbsp; 1.2. Justificación del uso de redes neuronales
-- &nbsp; 1.3. Modelo biológico de la neurona
-- &nbsp; 1.4. Definición provisional de red neuronal
-2. Teoría de aprendizaje estadístico
-- &nbsp; 2.1. Definición de aprendizaje
-- &nbsp;  2.2.Aprendizaje supervisado, no supervisado, por refuerzo
-- &nbsp;  2.3. Modelos generativos y discriminativos
-- &nbsp; 2.4. Entrenamiento y evaluación
-- &nbsp; 2.5. Ejemplo: Regresión lineal
+- &nbsp; 1.1 Teoría de aprendizaje estadístico
+- &nbsp; [1.2. Modelo biológico de la neurona](https://github.com/VictorMijangosDeLaCruz/Redes_Neuronales/blob/main/Notebooks/00%20Modelo%20de%20Hudgkin-Huxley/README.md)
 3. Perceptrón
 - &nbsp; 3.1. Definición del perceptrón
 - &nbsp; 3.2. Regla de aprendizaje en el perceptrón
