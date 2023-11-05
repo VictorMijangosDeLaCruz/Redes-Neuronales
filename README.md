@@ -1,6 +1,7 @@
 # Redes Neuronales
 
 Este repositorio contiene material del curso de Redes neuronales, en la Facultad de Ciencias, UNAM. Y ha sido desarrollado por varios contribuidores bajo el proyecto PAPIME PE102723.
+Las redes neuronales artificiales son modelo de aprendizaje estadístico que buscan emular la forma en que una neurona procesa información. Tradicionalmente se enfocan a tareas de clasificación, pero también pueden resolver otras tareas como regresión o, incluso, tareas no supervisadas o generativas.
 
 ## Objetivo del curso: 
 El curso comprenderá el modelo matemático de la red neuronal que da pie a las redes neuronales artificiales y su generalización. Se revisarán los temas más prominentes sobre redes neuronales: su modelación, el concepto de arquitectura y el proceso de aprendizaje que conllevan.
@@ -12,7 +13,7 @@ Además de los algoritmos típicos dentro de la familia de redes neuronales, se 
 
 1. Introducción
 - &nbsp; 1.1 Teoría de aprendizaje estadístico
-- &nbsp; [1.2. Modelo biológico de la neurona](https://github.com/VictorMijangosDeLaCruz/Redes_Neuronales/blob/main/Notebooks/00%20Modelo%20de%20Hudgkin-Huxley/README.md)
+- &nbsp; [1.2. Modelo biológico de la neurona](https://github.com/VictorMijangosDeLaCruz/Redes_Neuronales/blob/main/Notebooks/00%20Modelo%20de%20Hudgkin-Huxley)
 3. Perceptrón
 - &nbsp; 3.1. Definición del perceptrón
 - &nbsp; 3.2. Regla de aprendizaje en el perceptrón
