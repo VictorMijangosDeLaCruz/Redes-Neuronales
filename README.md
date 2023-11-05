@@ -43,4 +43,7 @@ Además de los algoritmos típicos dentro de la familia de redes neuronales, se 
 ## Colaboradires
 
 [@veroarriola](https://github.com/veroarriola)
+
 [@milmor](https://github.com/milmor)
+
+[@VictorMijangosDeLaCruz](https://github.com/VictorMijangosDeLaCruz)
