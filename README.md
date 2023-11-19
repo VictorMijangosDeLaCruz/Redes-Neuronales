@@ -40,7 +40,7 @@ Además de los algoritmos típicos dentro de la familia de redes neuronales, se 
 - &nbsp; 6.5. Long-Short Term Memory (LSTM) y Gated Recurrent Unit (GRU)
 
 
-## Colaboradires
+## Colaboradores
 
 [@veroarriola](https://github.com/veroarriola)
 
