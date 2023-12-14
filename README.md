@@ -38,6 +38,12 @@ Además de los algoritmos típicos dentro de la familia de redes neuronales, se 
 - &nbsp; 6.3. Tipos de redes recurrentes
 - &nbsp; 6.4. Redes bidireccionales
 - &nbsp; 6.5. Long-Short Term Memory (LSTM) y Gated Recurrent Unit (GRU)
+7. Redes convolucionales
+- &nbsp; 7.1. Convoluciones y correlación cruzada
+- &nbsp; 7.2. Redes convolucionales
+8. Redes atencionales
+- &nbsp; 8.1. Atención
+- &nbsp; 8.2. Transformers
 
 
 ## Colaboradores
