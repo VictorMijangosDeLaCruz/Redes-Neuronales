@@ -35,14 +35,11 @@ Además de los algoritmos típicos dentro de la familia de redes neuronales, se 
   - &nbsp; 6.2. [Early Stopping](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/regularizacion/02EarlyStopping.html)
   - &nbsp; 6.3. [Dropout](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/regularizacion/03Dropout.html)
 6. Redes neuronales recurrentes
-- &nbsp; 6.1. Capas recurrentes
-- &nbsp; 6.2. Backpropagation Through Time
-- &nbsp; 6.3. Tipos de redes recurrentes
-- &nbsp; 6.4. Redes bidireccionales
-- &nbsp; 6.5. Long-Short Term Memory (LSTM) y Gated Recurrent Unit (GRU)
+- &nbsp; 6.1. [Redes recurrentes](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/rnn/01RNN.html)
+- &nbsp; 6.2. [LSTMs](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/rnn/02LSTM.html)
 7. Redes convolucionales
-- &nbsp; 7.1. Convoluciones y correlación cruzada
-- &nbsp; 7.2. Redes convolucionales
+- &nbsp; 7.1. [Convoluciones y correlación cruzada](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/conv/01Convolucion.html)
+- &nbsp; 7.2. [Redes convolucionales](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/conv/02ConvolutionalNetworks.html)
 8. Redes atencionales
 - &nbsp; 8.1. Atención
 - &nbsp; 8.2. Transformers
