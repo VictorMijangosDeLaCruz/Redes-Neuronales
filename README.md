@@ -23,12 +23,13 @@ Además de los algoritmos típicos dentro de la familia de redes neuronales, se 
 - &nbsp; 4.1. [Ejemplo de regresión con feedforward](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/ffw/01FFWRegression.html)
 - &nbsp; 4.2. [Redes neuronales como aproximadores universales](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/ffw/02AproximadorUniversal.html)
 5. Aprendizaje en redes multicapa
-- &nbsp; 5.1. Problema de aprendizaje en redes multi-capa
-- &nbsp; 5.2. Gradiente descendiente
-- &nbsp; 5.3. Otros optimizadores (Adagrad, Adam, RMSProp,...)
-- &nbsp; 5.4. Backpropagation
-- &nbsp; 5.5. Aceleración del entrenamiento mediante GPU
-- &nbsp; 5.6. Métodos de regularización (Tychonoff, Dropout)
+- &nbsp; 5.1. [Vectorización hacia adelante y atrás](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/aprendizaje/01Vectorizacion.html)
+- &nbsp; 5.2. [Descenso por gradiente](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/aprendizaje/02GD.html)
+- &nbsp; 5.3. [Desvsanecimiento del gradiente](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/aprendizaje/03Desvanecimiento.html)
+- &nbsp; 5.4. [Lotes](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/aprendizaje/04Batches.html)
+- &nbsp; 5.5. [Optimizadores basados en descendo por grandiente](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/aprendizaje/05Optimizadores.html)
+- &nbsp; 5.6. [Backpropagtion](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/aprendizaje/06BackProp.html)
+- &nbsp; 5.7. [Implementación de backprop con gráficas computacionales](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/aprendizaje/07BackPropGraph.html)
 6. Redes neuronales recurrentes
 - &nbsp; 6.1. Capas recurrentes
 - &nbsp; 6.2. Backpropagation Through Time
