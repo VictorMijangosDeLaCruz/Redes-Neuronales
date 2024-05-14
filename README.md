@@ -15,11 +15,10 @@ Además de los algoritmos típicos dentro de la familia de redes neuronales, se 
 - &nbsp; 1.1. [Teoría de aprendizaje estadístico](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/Introduccion/00AprendizajeMaquina.html)
 - &nbsp; 1.2. [Representación de datos](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/Introduccion/01RepresentacionDatos.html)
 - &nbsp; 1.3. [Modelo biológico de la neurona](https://github.com/VictorMijangosDeLaCruz/Redes_Neuronales/blob/main/Notebooks/00%20Modelo%20de%20Hudgkin-Huxley)
-3. Perceptrón
-- &nbsp; 3.1. Definición del perceptrón
-- &nbsp; 3.2. Regla de aprendizaje en el perceptrón
-- &nbsp; 3.3. Teorema de convergencia
-- &nbsp; 3.4. Funciones lógicas y límites del perceptrón
+3. Modelos de una neurona
+- &nbsp; 3.1. [Regresión lineal](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/neuronas/02Linear_regression.html)
+- &nbsp; 3.2. [Perceptrón](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/neuronas/03Perceptron.html)
+- &nbsp; 3.3. [Límites de una neurona (Problema XOR)](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/neuronas/04SolucionXOR.html)
 4. Redes FeedForward
 - &nbsp; 4.1. Capas ocultas en las redes neuronales
 - &nbsp; 4.2. Funciones de activación
