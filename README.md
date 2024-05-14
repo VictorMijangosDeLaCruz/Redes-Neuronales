@@ -20,8 +20,8 @@ Además de los algoritmos típicos dentro de la familia de redes neuronales, se 
 - &nbsp; 3.2. [Perceptrón](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/neuronas/03Perceptron.html)
 - &nbsp; 3.3. [Límites de una neurona (Problema XOR)](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/neuronas/04SolucionXOR.html)
 4. Redes FeedForward
-- &nbsp; 4.1. [Ejemplo de regresión con feedforward](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/neuronas/01FFWRegression.html)
-- &nbsp; 4.2. [Redes neuronales como aproximadores universales](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/neuronas/02AproximadorUniversal.html)
+- &nbsp; 4.1. [Ejemplo de regresión con feedforward](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/ffw/01FFWRegression.html)
+- &nbsp; 4.2. [Redes neuronales como aproximadores universales](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/ffw/02AproximadorUniversal.html)
 5. Aprendizaje en redes multicapa
 - &nbsp; 5.1. Problema de aprendizaje en redes multi-capa
 - &nbsp; 5.2. Gradiente descendiente
