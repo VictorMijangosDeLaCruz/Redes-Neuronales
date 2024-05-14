@@ -42,7 +42,7 @@ Además de los algoritmos típicos dentro de la familia de redes neuronales, se 
 - &nbsp; 7.2. [Redes convolucionales](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/conv/02ConvolutionalNetworks.html)
 8. Redes atencionales
 - &nbsp; 8.1. [Atención](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/att/01Attention.html)
-- &nbsp; 8.2. [Transformadores](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/att/02Transformer.html)
+- &nbsp; 8.2. [Transformadores](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/att/02Transfomer.html)
 
 ### Frameworks para redes neuronales
   1. [Noteboks en PyTorch](https://github.com/VictorMijangosDeLaCruz/Redes-Neuronales/tree/main/Notebooks/Torch)
