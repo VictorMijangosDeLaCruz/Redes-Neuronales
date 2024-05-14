@@ -28,8 +28,12 @@ Además de los algoritmos típicos dentro de la familia de redes neuronales, se 
 - &nbsp; 5.3. [Desvsanecimiento del gradiente](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/aprendizaje/03Desvanecimiento.html)
 - &nbsp; 5.4. [Lotes](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/aprendizaje/04Batches.html)
 - &nbsp; 5.5. [Optimizadores basados en descendo por grandiente](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/aprendizaje/05Optimizadores.html)
-- &nbsp; 5.6. [Backpropagtion](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/aprendizaje/06BackProp.html)
+- &nbsp; 5.6. [Backpropagtion](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/aprendizaje/06Backprop.html)
 - &nbsp; 5.7. [Implementación de backprop con gráficas computacionales](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/aprendizaje/07BackPropGraph.html)
+6. Regularización
+  - &nbsp; 6.1. [Aprendizaje multitarea](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/regularizacion/01Multitarea.html)
+  - &nbsp; 6.2. [Early Stopping](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/regularizacion/02EarlyStopping.html)
+  - &nbsp; 6.3. [Dropout](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/regularizacion/03Dropout.html)
 6. Redes neuronales recurrentes
 - &nbsp; 6.1. Capas recurrentes
 - &nbsp; 6.2. Backpropagation Through Time
