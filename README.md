@@ -12,8 +12,9 @@ Además de los algoritmos típicos dentro de la familia de redes neuronales, se 
 ## Temas
 
 1. Introducción
-- &nbsp; 1.1 Teoría de aprendizaje estadístico
-- &nbsp; [1.2. Modelo biológico de la neurona](https://github.com/VictorMijangosDeLaCruz/Redes_Neuronales/blob/main/Notebooks/00%20Modelo%20de%20Hudgkin-Huxley)
+- &nbsp; 1.1. [Teoría de aprendizaje estadístico](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/Introduccion/00AprendizajeMaquina.html)
+- &nbsp; 1.2. [Representación de datos](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/Introduccion/01RepresentacionDatos.html)
+- &nbsp; 1.3. [Modelo biológico de la neurona](https://github.com/VictorMijangosDeLaCruz/Redes_Neuronales/blob/main/Notebooks/00%20Modelo%20de%20Hudgkin-Huxley)
 3. Perceptrón
 - &nbsp; 3.1. Definición del perceptrón
 - &nbsp; 3.2. Regla de aprendizaje en el perceptrón
