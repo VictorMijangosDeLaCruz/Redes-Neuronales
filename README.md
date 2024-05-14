@@ -53,3 +53,7 @@ Además de los algoritmos típicos dentro de la familia de redes neuronales, se 
 [@milmor](https://github.com/milmor)
 
 [@VictorMijangosDeLaCruz](https://github.com/VictorMijangosDeLaCruz)
+
+
+---------------------------------------------------------------------------------
+<div style="text-align: right">Proyecto PAPIME PE102723</div>
