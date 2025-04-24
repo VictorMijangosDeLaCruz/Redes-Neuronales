@@ -40,7 +40,8 @@ Además de los algoritmos típicos dentro de la familia de redes neuronales, se 
 7. Redes convolucionales
 - &nbsp; 7.1. [Convoluciones y correlación cruzada](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/conv/01Convolucion.html)
 - &nbsp; 7.2. [Redes convolucionales](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/conv/02ConvolutionalNetworks.html)
-- &nbsp; 7.3  [Red convolucional para visualización](https://victormijangosdelacruz.github.io/Redes-Neuronales/Notebooks/09%20Convolucionales/Red%20convolucional%20para%20visualización.ipynb)
+- &nbsp; 7.3  [Red convolucional para visualización](https://github.com/VictorMijangosDeLaCruz/Redes-Neuronales/blob/main/Notebooks/09%20Convolucionales/Red%20convolucional%20para%20visualizaci%C3%B3n.ipynb)
+- &nbsp; 7.4  [Visualización de conceptos aprendidos](https://github.com/VictorMijangosDeLaCruz/Redes-Neuronales/blob/main/Notebooks/09%20Convolucionales/Visualizaci%C3%B3n.ipynb)
 8. Redes atencionales
 - &nbsp; 8.1. [Atención](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/att/01Attention.html)
 - &nbsp; 8.2. [Transformadores](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/att/02Transfomer.html)
