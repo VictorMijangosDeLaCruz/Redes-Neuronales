@@ -47,6 +47,7 @@ Además de los algoritmos típicos dentro de la familia de redes neuronales, se 
 - &nbsp; 8.2. [Transformadores](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/att/02Transfomer.html)
 9. Modelos generativos
 - &nbsp; 9.1. [GAN](https://victormijangosdelacruz.github.io/Redes-Neuronales/html/generative/GAN.html)
+- .
 
 ### Frameworks para redes neuronales
   1. [Noteboks en PyTorch](https://github.com/VictorMijangosDeLaCruz/Redes-Neuronales/tree/main/Notebooks/Torch)
