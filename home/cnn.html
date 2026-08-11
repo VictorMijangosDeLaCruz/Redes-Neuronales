@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Redes convolucionales</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Redes convolucionales</h1>
+<p class="date"> </p>
+</header>
+
+<p>Como hemos visto en el capítulo anterior, las redes recurrentes se
+relacionan con las redes feedforward, en tanto las redes feedforward
+pueden verse como un caso particular de las primeras cuando se trabaja
+con secuencias de un sólo elemento. En ambos casos, las capas de la red
+en cada capa conectan todas su neuronas con las neuronas de la siguiente
+capa. Es por esto que a las capas de tipo feedforward se les llama a
+veces completamente conectadas o densas. Estas redes asumen que cada
+neurona en una capa oculta requiere de toda la información de la capa
+previa.</p>
+<p>Sin embargo, en muchos problemas es importante considerar la
+información relevante de las capas anteriores y que esta información
+responda al problema a trabajar. Un ejemplo claro es el procesamiento de
+imágenes. Si tomamos una imagen cuyos píxeles pueden considerarse como
+valores numéricos que pasan a una neurona en la capa oculta, el hacer
+que la neurona tome toda a información directamente puede hacer que la
+red neuronal pierda la capacidad de generalizar ante transformaciones de
+estos datos, como una traslación o una rotación, ya que la neurona de la
+capa oculta se puede especializar en una característica particular,
+dando mayor peso a esta característica, pero cuando se aplica una
+transformación, como una traslación, a la imagen, esta característica
+puede desplazarse a otra posición en las neuronas de entrada, perdiendo
+así información relevante sobre la imagen.</p>
+<p>Para solventar esta problemática, que no es particular a las
+imágenes, se ha propuesto la arquitectura de red convolucional <span
+class="citation" data-cites="lecun1998gradient"></span> que revisamos en
+este capítulo. Se trata de una arquitectura que resalta información
+local para enviar a las unidades ocultas. Para revisar el funcionamiento
+de las capas convolucionales revisamos, en primer lugar, el concepto de
+convolución y de correlación cruzada. Posteriormente definimos las capas
+convolucionales y de pooling, para finalmente hablar sobre el
+entrenamiento en este tipo de capas.</p>
+<h2 id="convolución-y-correlación-cruzada">Convolución y correlación
+cruzada</h2>
+<p>Las redes convolucionales toman su nombre del concepto de convolución
+de funciones. Una convolución es un operador que toma una función y
+arroja una nueva función en base a una medida, función o filtro
+(<em>kernel</em>). La convolución, entonces, toma dos funciones
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>
+y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math>
+para construir una tercera función que se suele denotar como
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>*</mo><mi>g</mi></mrow><annotation encoding="application/x-tex">f * g</annotation></semantics></math>.
+La función resultante trata de reflejar el cómo la ‘forma’ de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math>
+es afectada por la de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>.
+Esto nos servirá principalmente para darnos información acerca de la
+función
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math>
+en términos de la función
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>
+(la que llamaremos el <em>kernel</em>).</p>
+<div class="mydef">
+<p><strong>Definición 1.1</strong> (Convolución). <em>Una convolución es
+un operador sobre un espacio funcional
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>*</mo><mo>:</mo><msup><mi>ℝ</mi><mi>ℝ</mi></msup><mo>×</mo><msup><mi>ℝ</mi><mi>ℝ</mi></msup><mo>→</mo><msup><mi>ℝ</mi><mi>ℝ</mi></msup></mrow><annotation encoding="application/x-tex">*: \mathbb{R}^\mathbb{R} \times \mathbb{R}^\mathbb{R} \to \mathbb{R}^\mathbb{R}</annotation></semantics></math>,
+donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>ℝ</mi><mi>ℝ</mi></msup><annotation encoding="application/x-tex">\mathbb{R}^\mathbb{R}</annotation></semantics></math>
+denota el espacio de funciones de los reales hacia los reales, que se
+define como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>f</mi><mo>*</mo><mi>g</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msubsup><mo>∫</mo><mrow><mo>−</mo><mi>∞</mi></mrow><mi>∞</mi></msubsup><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>−</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>d</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">(f*g)(x) = \int_{-\infty}^{\infty} f(t)g(x-t) \mathop{d}t</annotation></semantics></math>
+Llamamos a la función
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>:</mo><mi>ℝ</mi><mo>→</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">f: \mathbb{R} \to \mathbb{R}</annotation></semantics></math>
+el <em>kernel</em> o filtro de la convolución.</em></p>
+</div>
+<div id="fig:convFunctions" class="ex">
+<p><strong>Ejemplo 1.1</strong>. <em>Supongamos que tenemos una función
+principal
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo>≡</mo><mi>σ</mi></mrow><annotation encoding="application/x-tex">g \equiv \sigma</annotation></semantics></math>
+dada por la función sigmoide que, ya conocemos, es de la forma
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><mn>1</mn><mrow><mn>1</mn><mo>+</mo><msup><mi>e</mi><mrow><mo>−</mo><mi>x</mi></mrow></msup></mrow></mfrac></mrow><annotation encoding="application/x-tex">\sigma(x) = \frac{1}{1+e^{-x}}</annotation></semantics></math>.
+Si utilizamos como función kernel a la función escalonada
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mn>1</mn><mrow><mo>&gt;</mo><mn>0</mn></mrow></msub><annotation encoding="application/x-tex">1_{&gt;0}</annotation></semantics></math>
+que toma el valor 1 cuando la entrada es positiva y 0 en otro caso,
+tenemos el siguiente resultado:</em></p>
+<div class="prop">
+<p><em><strong>Proposición 1.1</strong>. <em>Sea
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\sigma(x)</annotation></semantics></math>
+la función sigmoide y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mn>1</mn><mrow><mo>&gt;</mo><mn>0</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">1_{&gt;0}(x)</annotation></semantics></math>
+la función indicadora para valores positivos. Entonces, la convolución
+entre ambas es la función softplus; es decir:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">(</mo><msub><mn>1</mn><mrow><mo>&gt;</mo><mn>0</mn></mrow></msub><mo>*</mo><mi>σ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>ln</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>+</mo><msup><mi>e</mi><mi>x</mi></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">(1_{&gt;0} * \sigma)(x) = \ln(1+e^x)</annotation></semantics></math></em></em></p>
+</div>
+<div class="proof">
+<p><em><em>Proof.</em> Para demostrar el resultado de la convulición
+desarrollemos ésta con base en la definición. Tenemos:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><mrow><mo stretchy="true" form="prefix">(</mo><msub><mn>1</mn><mrow><mo>&gt;</mo><mn>0</mn></mrow></msub><mo>*</mo><mi>σ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><msubsup><mo>∫</mo><mrow><mo>−</mo><mi>∞</mi></mrow><mi>∞</mi></msubsup><msub><mn>1</mn><mrow><mo>&gt;</mo><mn>0</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>σ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>−</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>d</mi><mi>t</mi></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><msubsup><mo>∫</mo><mrow><mo>−</mo><mi>∞</mi></mrow><mn>0</mn></msubsup><mn>0</mn><mi>σ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>−</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>d</mi><mi>t</mi><mo>+</mo><msubsup><mo>∫</mo><mn>0</mn><mi>∞</mi></msubsup><mn>1</mn><mi>σ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>−</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>d</mi><mi>t</mi></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><msubsup><mo>∫</mo><mn>0</mn><mi>∞</mi></msubsup><mi>σ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>−</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>d</mi><mi>t</mi></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><msubsup><mo>∫</mo><mn>0</mn><mi>∞</mi></msubsup><mfrac><mn>1</mn><mrow><mn>1</mn><mo>+</mo><msup><mi>e</mi><mrow><mo>−</mo><mi>x</mi><mo>+</mo><mi>t</mi></mrow></msup></mrow></mfrac><mi>d</mi><mi>t</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+            (1_{&gt;0} * \sigma)(x) &amp;= \int_{-\infty}^{\infty} 1_{&gt;0}(t) \sigma(x-t) dt \\
+                    &amp;= \int_{-\infty}^{0} 0\sigma(x-t) dt + \int_0^{\infty} 1\sigma(x-t) dt \\
+                    &amp;= \int_0^{\infty} \sigma(x-t) dt \\
+                    &amp;= \int_0^{\infty} \frac{1}{1+e^{-x+t}} dt 
+        
+\end{aligned}</annotation></semantics></math> Podemos hacer un cambio de
+variable en la integración tomando
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><mi>x</mi><mo>−</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">u = x-t</annotation></semantics></math>,
+por lo que tendremos que:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><mrow><mo stretchy="true" form="prefix">(</mo><msub><mn>1</mn><mrow><mo>&gt;</mo><mn>0</mn></mrow></msub><mo>*</mo><mi>σ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><msubsup><mo>∫</mo><mrow><mo>−</mo><mi>∞</mi></mrow><mi>x</mi></msubsup><mfrac><mn>1</mn><mrow><mn>1</mn><mo>+</mo><msup><mi>e</mi><mi>u</mi></msup></mrow></mfrac><mi>d</mi><mi>u</mi></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mo>ln</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>+</mo><msup><mi>e</mi><mi>x</mi></msup><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><munder><mo>lim</mo><mrow><mi>u</mi><mo>→</mo><mo>−</mo><mi>∞</mi></mrow></munder><mo>ln</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>+</mo><msup><mi>e</mi><mi>u</mi></msup><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mo>ln</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>+</mo><msup><mi>e</mi><mi>x</mi></msup><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+            (1_{&gt;0} * \sigma)(x) &amp;= \int_{-\infty}^x \frac{1}{1+e^{u}} du \\
+                    &amp;= \ln(1+e^x) - \lim_{u\to -\infty} \ln(1+e^u) \\
+                    &amp;= \ln(1+e^x)
+        
+\end{aligned}</annotation></semantics></math> El resultado es claro en
+tanto
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>lim</mo><mrow><mi>u</mi><mo>→</mo><mo>−</mo><mi>∞</mi></mrow></msub><mo>ln</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>+</mo><msup><mi>e</mi><mi>u</mi></msup><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\lim_{u\to -\infty} \ln(1+e^u) = 0</annotation></semantics></math>. ◻</em></p>
+</div>
+<figure id="fig:convFunctions">
+<img src="images/convFunctions.png" />
+<figcaption><em>Convolución de las funciones escalón y
+sigmoide</em></figcaption>
+</figure>
+<p><em>En la Figura <a href="#fig:convFunctions"
+data-reference-type="ref" data-reference="fig:convFunctions">1.1</a> se
+puede ver gráficamente las dos funciones originales y el resultado de la
+convolución que es la función softplus. Este resultado es
+particularmente interesante pues las funciones aquí implicadas se
+utilizan como activaciones de neuronas. También a partir de este
+resultado es fácil ver que la derivada de la función softplus es la
+función sigmoide.</em></p>
+</div>
+<p>Un operador común, similar a la convolución, es la llamada
+correlación cruzada, la cual tiene muchas similitudes con el operador de
+convolución, pues también busca expresar una función
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math>
+en términos de una función kernel
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>,
+solamente que utiliza una suma de valores en lugar de la resta de la
+convolución.</p>
+<div class="mydef">
+<p><strong>Definición 1.2</strong> (Correlación cruzada). <em>Sean
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>,</mo><mi>g</mi><mo>:</mo><mi>ℝ</mi><mo>→</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">f,g: \mathbb{R} \to \mathbb{R}</annotation></semantics></math>
+funciones, la correlación cruzada entre ambas funciones está determinada
+como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>f</mi><mo>⋆</mo><mi>g</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msubsup><mo>∫</mo><mrow><mo>−</mo><mi>∞</mi></mrow><mi>∞</mi></msubsup><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>+</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>d</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">(f \star g)(x) = \int_{-\infty}^{\infty} f(t)g(x+t) \mathop{d}t</annotation></semantics></math>
+Decimos que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>:</mo><mi>ℝ</mi><mo>→</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">f: \mathbb{R} \to \mathbb{R}</annotation></semantics></math>
+es la función <em>kernel</em> o el filtro.</em></p>
+</div>
+<p>Como se puede observar de la definición, la única diferencia con la
+convolución es el hecho de que la función
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math>
+se aplica sobre la suma de los valores
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>
+y no la diferencia. Los resultados obtenidos con la convolución y con la
+correlación cruzada no son iguales, pero ambos se pueden interpretar
+como una forma de obtener información de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math>
+en términos del kernel
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>.</p>
+<div id="fig:crossCorr" class="ex">
+<p><strong>Ejemplo 1.2</strong>. <em>Consideremos el mismo ejemplo del
+caso anterior, tomando la función sigmoide
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\sigma(x)</annotation></semantics></math>
+y la función indicadora
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mn>1</mn><mrow><mo>&gt;</mo><mn>0</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">1_{&gt;0}(x)</annotation></semantics></math>.
+Tenemos el siguiente resultado:</em></p>
+<div class="prop">
+<p><em><strong>Proposición 1.2</strong>. <em>Sea
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\sigma(x)</annotation></semantics></math>
+la función sigmoide y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mn>1</mn><mrow><mo>&gt;</mo><mn>0</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">1_{&gt;0}(x)</annotation></semantics></math>
+la función indicadora para valores positivos. Entonces, la correlación
+cruzada entre ambas funciones se da como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">(</mo><msub><mn>1</mn><mrow><mo>&gt;</mo><mn>0</mn></mrow></msub><mo>⋆</mo><mi>σ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>ln</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>+</mo><msup><mi>e</mi><mrow><mo>−</mo><mi>x</mi></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">(1_{&gt;0} \star \sigma)(x) = \ln(1+e^{-x})</annotation></semantics></math></em></em></p>
+</div>
+<figure id="fig:crossCorr">
+<img src="images/crossCorr.png" />
+<figcaption><em>Correlación cruzada de las funciones escalón y
+sigmoide</em></figcaption>
+</figure>
+<p><em>En este caso, la función se integra sobre la suma de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>+</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">x+t</annotation></semantics></math>
+y no sobre la resta como en el caso de la convolución. La correlación
+cruzada se muestra en la Figura <a href="#fig:crossCorr"
+data-reference-type="ref" data-reference="fig:crossCorr">1.2</a>. El
+resultado de la convolución y la correlación cruzada son muy similares
+excepto por un cambio de signos.</em></p>
+</div>
+<p>Para los intereses del aprendizaje profundo, más que funciones
+continuas nos interesa aplicar una correlación cruzada o convolución
+sobre funciones definidas en dominios discretos (y comúnmente finitos).
+Podemos definir la correlación cruzada en términos discretos.</p>
+<div id="def:CorrCroxDisc" class="mydef">
+<p><strong>Definición 1.3</strong> (Correlación cruzada discreta).
+<em>Sean
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>,</mo><mi>g</mi><mo>:</mo><mi>ℤ</mi><mo>→</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">f,g:\mathbb{Z} \to \mathbb{R}</annotation></semantics></math>
+dos funciones con dominio discreto, la correlación cruzada (discreta)
+entre estas funciones está dada como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>f</mi><mo>⋆</mo><mi>g</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><munderover><mo>∑</mo><mrow><mi>n</mi><mo>=</mo><mo>−</mo><mi>∞</mi></mrow><mo accent="false">∞</mo></munderover><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>n</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>+</mo><mi>n</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">(f \star g)(x) = \sum_{n=-\infty}^\infty f(n) g(x+n)</annotation></semantics></math></em></p>
+</div>
+<p>De forma general, la correlación cruzada se realiza sobre los valores
+negativos y positivos hasta infinito. Pero si el dominio está acotado,
+podemos tomar valores de inicio y término de la suma también acotados,
+permitiéndonos obtener la correlación cruzada de forma finita.</p>
+<p>En las redes neuronales, de hecho, se utilizan funciones de
+correlación cruzada y no de convoluciones. Asimismo, ya que trabajamos
+con valores discretos, en las redes neuronales utilizaremos la
+correlación cruzada discreta y acotada sobre los valores de los datos de
+entrada. En lo que sigue nos referiremos a convoluciones (y capas
+convolucionales) cuando hablemos de la aplicación de operadores de
+correlación cruzada en las redes neuronales; esto con base a la
+terminología estándar dentro del área.</p>
+<h2 id="sec:ConvLayer">Capas convolucionales</h2>
+<p>Como lo hemos mencionado anteriormente, propiamente las capas
+convolucionales utilizan correlación cruzada para capturar información
+de los datos de entrada en base a las relaciones determinadas por un
+kernel. Las capas convolucionales por tanto aplicarán un operador de
+correlación cruzada entre los datos de entrada y un kernel, ambos
+determinados de manera discreta y finita. Generalmente, una capa
+convolucional típica toma como entrada una matriz, por ejemplo una
+imagen. En la correlación cruzada tenemos que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>f</mi><mo>⋆</mo><mi>g</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>∫</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>+</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>d</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">(f\star g)(x) = \int f(t) g(x+t) dt</annotation></semantics></math>.
+Si discretizamos esta fórmula obtendremos que:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>f</mi><mo>⋆</mo><mi>g</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><munder><mo>∑</mo><mi>t</mi></munder><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>+</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">(f\star g)(x) = \sum_t f(t) g(x+t)</annotation></semantics></math>
+Como mencionamos, la entrada es una matriz, por lo que en este caso,
+podemos ver a
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math>
+como dicha matriz de entrada. Las matrices pueden verse como funciones
+sobre los números naturales. Supongamos el caso donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>i</mi><mo>,</mo><mi>j</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">x=(i,j)</annotation></semantics></math>
+con
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi><mo>,</mo><mi>j</mi><mo>∈</mo><mi>ℕ</mi></mrow><annotation encoding="application/x-tex">i,j \in \mathbb{N}</annotation></semantics></math>,
+es decir, los argumentos de la función son los pares
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><mi>i</mi><mo>,</mo><mi>j</mi><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(i,j)</annotation></semantics></math>
+que determinan las coordenadas de la matriz, el renglón y la columna
+respectivamente. De igual forma, podemos pensar al kernel
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>
+como una función que toma pares de coordenadas como argumentos, esto es
+que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>l</mi><mo>,</mo><mi>l</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">t=(l, l&#39;)</annotation></semantics></math>;
+por tanto, el kernel también será una matriz. Podremos reescribir la
+fórmula de la convolución de la siguiente forma:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>f</mi><mo>⋆</mo><mi>g</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>i</mi><mo>,</mo><mi>j</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><munder><mo>∑</mo><mi>l</mi></munder><munder><mo>∑</mo><mrow><mi>l</mi><mi>′</mi></mrow></munder><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>l</mi><mo>,</mo><mi>l</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>i</mi><mo>+</mo><mi>l</mi><mo>,</mo><mi>j</mi><mo>+</mo><mi>l</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">(f\star g)(i,j) = \sum_l \sum_{l&#39;} f(l, l&#39;) g(i+l, j+l&#39;)</annotation></semantics></math>
+Donde la doble suma surge del hecho de que las funciones toman dos
+argumentos de entrada y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>l</mi><mo>,</mo><mi>l</mi><mi>′</mi></mrow><annotation encoding="application/x-tex">l, l&#39;</annotation></semantics></math>
+corren dentro del dominio de estas funciones, en particular dentro del
+dominio del kernel. Si tomamos
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>
+como un kernel donde los argumentos responden a las entradas de la
+matriz,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>l</mi><mo>,</mo><mi>l</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msub><mi>W</mi><mrow><mi>l</mi><mi>.</mi><mi>l</mi><mi>′</mi></mrow></msub></mrow><annotation encoding="application/x-tex">f(l,l&#39;) = W_{l.l&#39;}</annotation></semantics></math>,
+y a
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math>
+como la entrada donde de igual forma los argumentos responden a las
+entradas de la matriz,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>i</mi><mo>,</mo><mi>j</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msub><mi>x</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub></mrow><annotation encoding="application/x-tex">g(i,j) = x_{i,j}</annotation></semantics></math>,
+entonces tenemos como resultado lo que en redes se conoce como
+convolución.</p>
+<div id="def:convLayer" class="mydef">
+<p><strong>Definición 1.4</strong> (Capa convolucional). <em>Una capa
+convolucional en una red neuronal es una capa que aplica un operador de
+convolución (correlación cruzada) finita a una matriz de entrada
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>∈</mo><msup><mi>ℝ</mi><mrow><mi>H</mi><mi>′</mi><mo>×</mo><mi>L</mi><mi>′</mi></mrow></msup></mrow><annotation encoding="application/x-tex">x \in \mathbb{R}^{H&#39; \times L&#39;}</annotation></semantics></math>,
+cuyo resultado es una matriz cuyas entradas son de la forma:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub><mo>=</mo><mi>g</mi><msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>W</mi><mo>⋆</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub><mo>=</mo><mi>g</mi><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">(</mo><munderover><mo>∑</mo><mrow><mi>l</mi><mo>=</mo><mn>0</mn></mrow><mi>H</mi></munderover><munderover><mo>∑</mo><mrow><mi>l</mi><mi>′</mi><mo>=</mo><mn>0</mn></mrow><mi>L</mi></munderover><msub><mi>W</mi><mrow><mi>l</mi><mo>,</mo><mi>l</mi><mi>′</mi></mrow></msub><msub><mi>x</mi><mrow><mi>i</mi><mo>+</mo><mi>l</mi><mo>,</mo><mi>j</mi><mo>+</mo><mi>l</mi><mi>′</mi></mrow></msub><mo>+</mo><mi>b</mi><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">h_{i,j} = g(W\star x)_{i,j} = g\Big( \sum_{l=0}^H \sum_{l&#39;=0}^L W_{l,l&#39;} x_{i+l, j+l&#39;} + b \Big)</annotation></semantics></math>
+Donde los pesos de la capa son
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>W</mi><mo>∈</mo><msup><mi>ℝ</mi><mrow><mi>H</mi><mo>×</mo><mi>L</mi></mrow></msup></mrow><annotation encoding="application/x-tex">W \in \mathbb{R}^{H \times L}</annotation></semantics></math>
+y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>
+(el bias), tal que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>H</mi><annotation encoding="application/x-tex">H</annotation></semantics></math>
+y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>
+son la altura y anchura del kernel. Finalmente,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo>:</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">g: \mathbb{R}</annotation></semantics></math>
+es una función de activación.</em></p>
+</div>
+<p>En la notación de la definición, queda claro que nos referimos a la
+pre-activación en una capa convolucional como la aplicación de la
+convolución sin la función de activación. Esto es, la pre-activación
+será de la forma:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>a</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub><mo>=</mo><msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>W</mi><mo>⋆</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub><mo>=</mo><munderover><mo>∑</mo><mrow><mi>l</mi><mo>=</mo><mn>0</mn></mrow><mi>H</mi></munderover><munderover><mo>∑</mo><mrow><mi>l</mi><mi>′</mi><mo>=</mo><mn>0</mn></mrow><mi>L</mi></munderover><msub><mi>W</mi><mrow><mi>l</mi><mo>,</mo><mi>l</mi><mi>′</mi></mrow></msub><msub><mi>x</mi><mrow><mi>i</mi><mo>+</mo><mi>l</mi><mo>,</mo><mi>j</mi><mo>+</mo><mi>l</mi><mi>′</mi></mrow></msub><mo>+</mo><mi>b</mi></mrow><annotation encoding="application/x-tex">a_{i,j} = (W\star x)_{i,j} =  \sum_{l=0}^H \sum_{l&#39;=0}^L W_{l,l&#39;} x_{i+l, j+l&#39;} + b</annotation></semantics></math>
+La activación que se ocupa en las capas convolucionales suele ser la
+activación ReLU, pero puede ser cualquier función de activación que nos
+ayude a resolver el problema. Una red convolucional es una red que
+cuenta con una o más capas convolucionales que incluyen una operación de
+convolución.</p>
+<div id="fig:xImage" class="ex">
+<p><strong>Ejemplo 1.3</strong>. <em>Para ejemplificar como funciona una
+capa convolucional, tomemos como ejemplo un problema en donde los datos
+de entrada son matrices de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>9</mn><mo>×</mo><mn>9</mn></mrow><annotation encoding="application/x-tex">9 \times 9</annotation></semantics></math>
+y tomemos un kernel de altura y anchura ambas igual a 3. Definamos
+nuestro kernel de la siguiente manera.
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>W</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">W = 
+        \begin{pmatrix}
+        1 &amp; -1 &amp; -1 \\ -1 &amp;  1 &amp; -1 \\ -1 &amp; -1 &amp;  1
+        \end{pmatrix}</annotation></semantics></math> Por simplicidad,
+asumiremos que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">b=0</annotation></semantics></math>.
+Este kernel, se puede visualizar como se muestra en la Figura <a
+href="#fig:kernel" data-reference-type="ref"
+data-reference="fig:kernel">1.3</a>. Es decir, esta representando una
+diagonal.</em></p>
+<figure id="fig:kernel">
+<img src="images/kernel.png" />
+<figcaption><em>Visualización del kernel</em></figcaption>
+</figure>
+<p><em>Ahora, tomemos un dato de entrada, el cual es una matriz de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>9</mn><mo>×</mo><mn>9</mn></mrow><annotation encoding="application/x-tex">9 \times 9</annotation></semantics></math>.
+Digamos que esta matriz está dada de la siguiente forma:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">x = 
+    \begin{pmatrix}
+    -1 &amp; -1 &amp; -1 &amp; -1 &amp; -1 &amp; -1 &amp; -1 &amp; -1 &amp;  -1 \\ -1 &amp;  1 &amp; -1 &amp; -1 &amp; -1 &amp; -1 &amp;  -1 &amp;  1 &amp;  -1 \\ -1 &amp; -1 &amp;  1 &amp; -1 &amp; -1 &amp;  -1 &amp;  1 &amp;  -1 &amp;  -1 \\
+    -1 &amp; -1 &amp; -1 &amp;  1 &amp;  -1 &amp;  1 &amp; -1 &amp; -1 &amp;  -1 \\ -1 &amp; -1 &amp;  -1 &amp; -1 &amp;  1 &amp;  -1 &amp; -1 &amp; -1 &amp;  -1\\-1 &amp;  -1 &amp; -1 &amp;  1 &amp; -1 &amp;  1 &amp;  -1 &amp; -1 &amp;  -1 \\
+    -1 &amp; -1 &amp;  1 &amp; -1 &amp; -1 &amp; -1 &amp;  1 &amp; -1 &amp;  -1 \\ -1 &amp;  1 &amp; -1 &amp; -1 &amp; -1 &amp; -1 &amp; -1 &amp;  1 &amp;  -1 \\ -1 &amp;  -1 &amp; -1 &amp; -1 &amp; -1 &amp; -1 &amp; -1 &amp;  -1 &amp;  -1
+    \end{pmatrix}</annotation></semantics></math> Esta matriz puede
+verse como una imagen en blanco y negro. En la parte izquierda de la
+Figura <a href="#fig:xImage" data-reference-type="ref"
+data-reference="fig:xImage">1.3</a> se puede ver que está matriz está
+definiendo una X, los valores de -1 son blancos y los valores de 1
+negros. Podemos entonces comenzar a hacer la convolución entre
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+y el kernel
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>W</mi><annotation encoding="application/x-tex">W</annotation></semantics></math>.
+Lo que nos dice esta operación es que tomemos el tamaño del kernel,
+multipliquemos por los elementos de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+que lo abarcan y sumemos. Esto es, para cuando
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi><mo>=</mo><mn>0</mn><mo>=</mo><mi>j</mi></mrow><annotation encoding="application/x-tex">i=0=j</annotation></semantics></math>,
+tenemos:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>W</mi><mo>⋆</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mn>0</mn><mo>,</mo><mn>0</mn></mrow></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><munderover><mo>∑</mo><mrow><mi>l</mi><mo>=</mo><mn>0</mn></mrow><mn>2</mn></munderover><munderover><mo>∑</mo><mrow><mi>l</mi><mi>′</mi><mo>=</mo><mn>0</mn></mrow><mn>2</mn></munderover><msub><mi>W</mi><mrow><mi>l</mi><mo>,</mo><mi>l</mi><mi>′</mi></mrow></msub><msub><mi>x</mi><mrow><mn>0</mn><mo>+</mo><mi>l</mi><mo>,</mo><mn>0</mn><mo>+</mo><mi>l</mi><mi>′</mi></mrow></msub></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo><mo>+</mo><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo><mo>+</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mspace width="0.222em"></mspace><mo>+</mo><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mn>1</mn><mo>+</mo><mn>3</mn><mo>+</mo><mn>3</mn><mo>=</mo><mn>7</mn></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+        (W\star x)_{0,0} &amp;= \sum_{l=0}^2 \sum_{l&#39;=0}^2 W_{l,l&#39;} x_{0+l, 0+l&#39;} \\
+                    &amp;= \big( (1)(-1)+(-1)(-1)+(-1)(-1) \big) + \big( (-1)(-1)+(1)(1)+(-1)(-1) \big) + \\ &amp;~ +\big( (-1)(-1)+(-1)(-1)+(1)(1) \big) \\
+                    &amp;= 1 + 3 + 3 = 7
+    
+\end{aligned}</annotation></semantics></math> Notemos que en este caso,
+hemos tomado el kernel
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>W</mi><annotation encoding="application/x-tex">W</annotation></semantics></math>
+y hemos multiplicado por una región de la matriz de la imagen, en
+particular por los primeros 3 renglones y 3 columnas del extremo
+superior izquierdo. Para proceder con la convolución, ahora debemos
+movernos a la siguiente región de la imagen
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>,
+lo que correspondería a moverse hacia la derecha en un paso.</em></p>
+<figure id="fig:xImage">
+<img src="images/xImage.png" />
+<figcaption><em>Imagen de la matriz de entrada y el resultado de aplicar
+la convolución</em></figcaption>
+</figure>
+<p><em>Procediendo de esta forma, el resultado es una nueva matriz que
+de hecho ha reducido su tamaño con respecto a la matriz de entrada, pues
+algunos de los píxeles en la convolución han conformado valores sin ser
+considerados en la nueva imagen. Por ejemplo, el píxel en la coordenada
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(0,0)</annotation></semantics></math>
+se ha usado para calcular un nuevo píxel, pero no hay ninguno que lo
+reemplace. La matriz resultante es la siguiente:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>W</mi><mo>⋆</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>7</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>3</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>5</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>3</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>9</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>3</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>9</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>3</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>5</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>3</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>3</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>3</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>5</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>3</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>3</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>3</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>5</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>3</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>9</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>3</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>9</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>3</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>5</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>3</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>7</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">(W\star x) =
+    \begin{pmatrix}
+        7 &amp; -1 &amp; 1 &amp; 3 &amp; 5 &amp; -1 &amp; 3 \\
+-1 &amp; 9 &amp; -1 &amp; 3 &amp; -1 &amp; 1 &amp; -1 \\
+1 &amp; -1 &amp; 9 &amp; -3 &amp; 1 &amp; -1 &amp; 5 \\
+3 &amp; 3 &amp; -3 &amp; 5 &amp; -3 &amp; 3 &amp; 3 \\
+5 &amp; -1 &amp; 1 &amp; -3 &amp; 9 &amp; -1 &amp; 1 \\
+    -1 &amp; 1 &amp; -1 &amp; 3 &amp; -1 &amp; 9 &amp; -1 \\
+    3 &amp; -1 &amp; 5 &amp; 3 &amp; 1 &amp; -1 &amp; 7 \\
+    %     7 &amp; 0 &amp; 1 &amp; 3 &amp; 5 &amp; 0 &amp; 3 \\
+    %    0 &amp; 9 &amp; 0 &amp; 3 &amp; 0 &amp; 1 &amp; 0 \\
+    %    1 &amp; 0 &amp; 9 &amp; 0 &amp; 1 &amp; 0 &amp; 5 \\
+    %    3 &amp; 3 &amp; 0 &amp; 5 &amp; 0 &amp; 3 &amp; 3 \\
+    %    5 &amp; 0 &amp; 1 &amp; 0 &amp; 9 &amp; 0 &amp; 1 \\
+    %    0 &amp; 1 &amp; 0 &amp; 3 &amp; 0 &amp; 9 &amp; 0 \\
+    %    3 &amp; 0 &amp; 5 &amp; 3 &amp; 1 &amp; 7 &amp; 0
+    \end{pmatrix}</annotation></semantics></math> Se trata ahora de una
+matriz de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>7</mn><mo>×</mo><mn>7</mn></mrow><annotation encoding="application/x-tex">7 \times 7</annotation></semantics></math>
+con valores enteros. Esta nueva matriz también puede verse como una
+imagen, la cual se muestra en la parte derecha de la Figura <a
+href="#fig:xImage" data-reference-type="ref"
+data-reference="fig:xImage">1.3</a>. Se puede observar que la
+convolución de la imagen original con el kernel resalta la diagonal
+descendente de la imagen, pues justamente el kernel está pensado para
+hacer esto. De esta forma, la convolución con este kernel aporta
+información sobre esta característica de la imagen original.</em></p>
+</div>
+<p>Lo que hemos hecho con la capa de convolución es expresar funciones
+finitas por medio de matrices. Como vemos, la función de convolución en
+redes neuronales es similar a una la función que hemos definido en capas
+feedforward. Cada valor
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>W</mi><mo>⋆</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub></mrow><annotation encoding="application/x-tex">g(W\star x)_{i,j}</annotation></semantics></math>
+representa una neurona de la capa siguiente. Sin embargo, no se trata de
+conexiones densas, pues los pesos están limitados a una región
+específica de la entrada, determinada por la altura y anchura del
+kernel.</p>
+<p>Las redes convolucionales, de hecho, reducen el número de parámetros
+que se aplican en la capa, pues en una capa feedforward o densa se
+utilizarían tantos pesos como el producto de los valores de entrada con
+los valores de salida, en la capa convolucional el número de pesos
+depende del tamaño del kernel, que es un hiperparámetro determinado por
+el programador. De esta forma, como hemos visto en el ejemplo, podemos
+tener una entrada de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>9</mn><mo>×</mo><mn>9</mn></mrow><annotation encoding="application/x-tex">9 \times 9</annotation></semantics></math>
+(81 neuronas de entrada) y obtener una salida de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>7</mn><mo>×</mo><mn>7</mn></mrow><annotation encoding="application/x-tex">7 \times 7</annotation></semantics></math>
+(49 unidades ocultas) con sólo 9 pesos correspondientes al kernel, en
+lugar de los 3969 pesos que requeriría una red densa.</p>
+<figure id="fig:denseVsConv">
+<img src="images/denseVsConv.png" />
+<figcaption>Una red densa o completamente conectada (arriba) y una red
+convolucional con conexiones dispersas (abajo)</figcaption>
+</figure>
+<p>Por tanto, podemos ver una capa convolucional como una capa en donde
+las unidades ocultas no conectan con todas las neuronas de la capa
+previa. A esto se le conoce como <strong>conexión dispersa</strong>. En
+la Figura <a href="#fig:denseVsConv" data-reference-type="ref"
+data-reference="fig:denseVsConv">1.5</a> se puede ver una comparación
+gráfica entre una capa densa donde cada neurona de la capa previa
+conecta con cada unidad oculta, y la capa convolucional en donde estas
+conexiones son dispersas. esto nos da una red más simple por la menor
+cantidad de pesos.</p>
+<p>En el ejemplo, además, hemos notado que la aplicación de un kernel
+para obtener una unidad oculta
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>W</mi><mo>⋆</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">(W\star x)_{i,j}</annotation></semantics></math>
+puede verse como multiplicar una región de la matriz de entrada
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+con el kernel. Es decir, para obtener una unidad oculta, tomamos el
+kernel y multiplicamos cada una de sus entradas por una región de la
+matriz
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+definida por el tamaño del kernel. Posteriormente, sumamos todos los
+valores del resultado para obtener un nuevo valor que conformará la
+unidad oculta. Esta idea se puede ver en la Figura <a
+href="#fig:ConvolutionKernel" data-reference-type="ref"
+data-reference="fig:ConvolutionKernel">1.6</a>; matemáticamente se puede
+expresar como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>W</mi><mo>⋆</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub><mo>=</mo><munderover><mo>∑</mo><mi>i</mi><mi>H</mi></munderover><munderover><mo>∑</mo><mi>j</mi><mi>L</mi></munderover><mi>W</mi><mo>⊙</mo><mi>x</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>i</mi><mo>:</mo><mi>i</mi><mo>+</mo><mi>H</mi><mo>,</mo><mi>j</mi><mo>:</mo><mi>j</mi><mo>+</mo><mi>L</mi><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">(W\star x)_{i,j} = \sum_i^H \sum_j^L W \odot x[i:i+H, j:j+L]</annotation></semantics></math>
+Donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>i</mi><mo>:</mo><mi>H</mi><mo>,</mo><mi>j</mi><mo>:</mo><mi>L</mi><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">x[i:H, j:L]</annotation></semantics></math>
+denota la región de la matriz
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+acotada por el kernel y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>⊙</mo><annotation encoding="application/x-tex">\odot</annotation></semantics></math>
+es el producto punto a punto. Finalmente, la suma se realiza sobre todos
+los valores tanto de la altura
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>H</mi><annotation encoding="application/x-tex">H</annotation></semantics></math>
+y la anchura
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>
+de la matriz resultante.</p>
+<figure id="fig:ConvolutionKernel">
+<img src="images/ConvolutionKernel.png" />
+<figcaption>Una convolución equivale a multiplicar punto a punto el
+kernel por una ventana en la matriz original, para otener así un nuevo
+valor de salida</figcaption>
+</figure>
+<p>La ventana tiene como centro un píxel y relaciona los otros píxeles
+con respecto a este como se ve en la Figura <a
+href="#fig:ConvolutionKernel" data-reference-type="ref"
+data-reference="fig:ConvolutionKernel">1.6</a>. Podemos interpretar que
+la convolución busca representar este píxel central a partir de su
+relación con los píxeles a su alrededor (los que caben en la ventana).
+En este caso, también las redes convolucionales toman en cuenta el
+<strong>stride</strong>, que es el número de píxeles por el que se
+desplaza la ventana. Por ejemplo, puede desplazarse dos píxeles, tanto a
+la derecha como hacia abajo, saltándose un píxel en cada caso. Lo común
+es que el stride sea igual a 1, pues de esta forma el desplazamiento de
+la ventana es píxel por píxel. Un stride más grande hará que la ventana
+se desplace mayores espacios, lo que generalmente resulta en una matriz
+nueva más pequeña.</p>
+<p>También en el ejemplo pudimos ver que la aplicación de la convolución
+reduce el tamaño de la salida, esto porque hay píxeles que son ignorados
+para obtener la nueva imagen en la capa oculta. Para evitar que las
+imágenes se hagan más pequeñas conforme se aplican las capas
+convolucionales se suele utiliza una técnica de
+<strong>padding</strong>, que consiste simplemente en agregar 0’s en la
+orilla de la matriz original (como formando un marco). En el ejemplo, si
+agregamos un padding al poner un 0 en todos los renglones tanto al
+inicio como al final, un marco, obtendremos que el resultado será del
+mismo tamaño que la imagen original. En particular tendríamos que:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow><mo>⊙</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\begin{pmatrix}
+        1 &amp; -1 &amp; -1 \\ -1 &amp;  1 &amp; -1 \\ -1 &amp; -1 &amp;  1
+        \end{pmatrix} \odot \begin{pmatrix}
+        0 &amp; 0 &amp; 0 \\ 0 &amp;  -1 &amp; -1 \\ 0 &amp; -1 &amp;  1
+        \end{pmatrix}</annotation></semantics></math> Donde los 0’s
+arriba y a la izquierda definen el marco. Estos 0’s anulan ciertos
+valores del kernel que correspondería a píxeles que no aportan
+información (los píxeles del marco). Aquí sólo tomamos el extremo
+superior izquierdo de la imagen, pero puede comprobarse fácilmente cuál
+es el resultado de aplicar la convolución a la imagen del ejemplo con
+este padding.</p>
+<p>Como hemos señalado la convolución en redes neuronales busca
+conservar información relevante ante una modificación de los datos de
+entrada, principalmente ante las traslaciones. Las capas convolucionales
+se dicen equivariantes ante traslaciones; es decir, preservan la
+traslación aplicada a la entrada después de pasar por la capa. Para
+determinar esta propiedad de las capas convolucionales, damos primero
+una definición formal de la equivarianza.</p>
+<div class="mydef">
+<p><strong>Definición 1.5</strong> (Función equivariante). <em>Sea
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
+una transformación con dominio en los elementos
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>
+y sea
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
+una función aplicada sobre este dominio. Decimos que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
+es equivariante si para toda
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>
+se cumple que:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>T</mi><mi>f</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>T</mi><mi>ρ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>f</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\rho(Tf) = T\rho(f)</annotation></semantics></math></em></p>
+</div>
+<p>En el caso específico de las capas convolucionales, el dominio son
+las matrices que representan los datos, tanto de entrada como de
+representación, y las transformaciones son las traslaciones. Recordemos
+que una traslación es una transformación que modifica las coordenadas de
+una entrada en una matriz. Esta transformación se puede ver como una
+suma en los índices:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><msub><mi>x</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub><mo>=</mo><msub><mi>x</mi><mrow><mi>i</mi><mo>+</mo><msub><mi>c</mi><mi>i</mi></msub><mo>,</mo><mi>j</mi><mo>+</mo><msub><mi>c</mi><mi>j</mi></msub></mrow></msub></mrow><annotation encoding="application/x-tex">Tx_{i,j} = x_{i+c_i , j+c_j}</annotation></semantics></math>
+Con base en esto, podemos señalar que las capas convolucionales son
+equivariantes ante traslaciones.</p>
+<div class="theo">
+<p><strong>Teorema 1.1</strong>. <em>Sea
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>W</mi><annotation encoding="application/x-tex">W</annotation></semantics></math>
+la matriz de pesos de un kernel, entonces las capas convolucionales
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub><mo>=</mo><mi>g</mi><msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>W</mi><mo>⋆</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub></mrow><annotation encoding="application/x-tex">h_{i,j} = g(W \star x)_{i,j}</annotation></semantics></math>,
+con
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>∈</mo><msup><mi>ℝ</mi><mrow><mi>H</mi><mi>′</mi><mo>×</mo><mi>L</mi><mi>′</mi></mrow></msup></mrow><annotation encoding="application/x-tex">x \in \mathbb{R}^{H&#39; \times L&#39;}</annotation></semantics></math>,
+son equivariantes ante traslaciones. Esto es:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>W</mi><mo>⋆</mo><mi>T</mi><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub><mo>=</mo><mi>T</mi><msub><mi>h</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub></mrow><annotation encoding="application/x-tex">g(W\star Tx)_{i,j} = Th_{i,j}</annotation></semantics></math></em></p>
+</div>
+<div class="proof">
+<p><em>Proof.</em> Sea
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>W</mi><annotation encoding="application/x-tex">W</annotation></semantics></math>
+el kernel de la capa convolucional, para ver la equivarianza ante
+traslaciones sólo vasta fijarse en la operación de convolución, pues la
+función de activación se aplica punto a punto. Tenemos el siguiente
+desarrollo:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>W</mi><mo>⋆</mo><mi>T</mi><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><munderover><mo>∑</mo><mrow><mi>l</mi><mo>=</mo><mn>1</mn></mrow><mi>H</mi></munderover><munderover><mo>∑</mo><mrow><mi>l</mi><mi>′</mi><mo>=</mo><mn>1</mn></mrow><mi>L</mi></munderover><msub><mi>W</mi><mrow><mi>l</mi><mo>,</mo><mi>l</mi><mi>′</mi></mrow></msub><mi>T</mi><msub><mi>x</mi><mrow><mi>i</mi><mo>+</mo><mi>l</mi><mo>,</mo><mi>j</mi><mo>+</mo><mi>l</mi><mi>′</mi></mrow></msub><mo>+</mo><mi>b</mi></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><munderover><mo>∑</mo><mrow><mi>l</mi><mo>=</mo><mn>1</mn></mrow><mi>H</mi></munderover><munderover><mo>∑</mo><mrow><mi>l</mi><mi>′</mi><mo>=</mo><mn>1</mn></mrow><mi>L</mi></munderover><msub><mi>W</mi><mrow><mi>l</mi><mo>,</mo><mi>l</mi><mi>′</mi></mrow></msub><msub><mi>x</mi><mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>i</mi><mo>+</mo><msub><mi>c</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mi>l</mi><mo>,</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>j</mi><mo>+</mo><msub><mi>c</mi><mi>j</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mi>l</mi><mi>′</mi></mrow></msub><mo>+</mo><mi>b</mi></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><munderover><mo>∑</mo><mrow><mi>l</mi><mo>=</mo><mn>1</mn></mrow><mi>H</mi></munderover><munderover><mo>∑</mo><mrow><mi>l</mi><mi>′</mi><mo>=</mo><mn>1</mn></mrow><mi>L</mi></munderover><msub><mi>W</mi><mrow><mi>l</mi><mo>,</mo><mi>l</mi><mi>′</mi></mrow></msub><msub><mi>x</mi><mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>i</mi><mo>+</mo><mi>l</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>c</mi><mi>i</mi></msub><mo>,</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>j</mi><mo>+</mo><mi>l</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>c</mi><mi>j</mi></msub></mrow></msub><mo>+</mo><mi>b</mi></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>W</mi><mo>⋆</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>i</mi><mo>+</mo><msub><mi>c</mi><mi>i</mi></msub><mo>,</mo><mi>j</mi><mo>+</mo><msub><mi>c</mi><mi>j</mi></msub></mrow></msub></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mi>T</mi><msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>W</mi><mo>⋆</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+        (W\star Tx)_{i,j} &amp;= \sum_{l=1}^H \sum_{l&#39;=1}^L W_{l,l&#39;} Tx_{i+l, j+l&#39;} + b \\
+                &amp;= \sum_{l=1}^H \sum_{l&#39;=1}^L W_{l,l&#39;} x_{(i+c_i)+l, (j+c_j)+l&#39;} + b \\
+                &amp;= \sum_{l=1}^H \sum_{l&#39;=1}^L W_{l,l&#39;} x_{(i+l)+c_i, (j+l&#39;) + c_j} + b  \\
+                &amp;= (W\star x)_{i+c_i,j+c_j} \\
+                &amp;= T(W\star x)_{i,j}
+    
+\end{aligned}</annotation></semantics></math> Considerando la aplicación
+de la función de activación notamos que se obtiene
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><msub><mi>h</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub></mrow><annotation encoding="application/x-tex">Th_{i,j}</annotation></semantics></math>,
+que es lo que buscábamos. ◻</p>
+</div>
+<p>Este resultado es de especial importancia, pues señala una propiedad
+características de las redes convolucionales que les permite trabajar
+adecuadamente con los datos de entrada. Por ejemplo, si tenemos una
+tarea de detección de objetos en imágenes, la equivarianza ante
+traslación nos permitirá seguir detectando los mismos objetos a pesar de
+que estos hayan sido trasladados en la imagen de entrada. Sin embargo,
+en tareas como clasificación de imágenes podríamos pensar que la red
+tendría que ser capaz de determinar que la imagen transformada y la
+original son las mismas. Para esto, introduciremos el concepto de
+pooling.</p>
+<h2 id="pooling">Pooling</h2>
+<p>Una vez que se ha obtenido la matriz de convolución y se ha aplicado
+la función de activación, en las capas convolucionales es común aplicar
+un pooling. El pooling trabaja de forma similar a una convolución,
+tomando regiones de la matriz
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+(la cual ha sido obtenida por la convolución) y aplicando una operación
+sobre estas regiones para obtener una nueva matriz que contenga valores
+representativos de la convolución anterior para que el resultado final
+sea localmente invariante. Es decir, queremos que después de aplicar el
+pooling tengamos un resultado donde las traslaciones no afecten a la
+representación
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>.</p>
+<div class="mydef">
+<p><strong>Definición 1.6</strong> (Pooling). <em>El pooling es una
+estrategia para capas en una red neuronal, principalmente convolucional,
+que busca realizar un sub-muestreo de los datos, reduciendo la dimensión
+de los datos y conservando la mayor información de éstos.</em></p>
+</div>
+<p>La capa de pooling realiza operaciones sobre las matrices de entrada
+que permiten cierto nivel de invarianza local, al mismo tiempo que
+reducen la dimensión de las matrices de datos; esto para hacer más
+eficiente el procesamiento y reducir el sobre-ajuste que pueda
+presentarse. Existen varias formas de realizar el pooling, las más
+comunes son el promedio y el máximo.</p>
+<div class="mydef">
+<p><strong>Definición 1.7</strong> (Max-pooling). <em>El max-pooling es
+una estrategía de pooling que toma el valor máximo en una ventana de
+tamaño
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi><mo>×</mo><mi>m</mi></mrow><annotation encoding="application/x-tex">m \times m</annotation></semantics></math>.
+Es decir, obtiene una representación
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+con entradas:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub><mo>=</mo><munder><mo>max</mo><mi>x</mi></munder><mo stretchy="false" form="prefix">{</mo><msub><mi>x</mi><mrow><mi>l</mi><mo>,</mo><mi>l</mi><mi>′</mi></mrow></msub><mo>:</mo><mi>l</mi><mo>=</mo><mi>i</mi><mo>,</mo><mi>.</mi><mi>.</mi><mi>.</mi><mo>,</mo><mi>m</mi><mo>;</mo><mi>l</mi><mi>′</mi><mo>=</mo><mi>j</mi><mo>,</mo><mi>.</mi><mi>.</mi><mi>.</mi><mo>,</mo><mi>m</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">h_{i,j} = \max_x \{x_{l,l&#39;} : l=i,...,m; l&#39;=j,...,m\}</annotation></semantics></math>
+Donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+es una matriz de entrada.</em></p>
+</div>
+<p>El max-pooling, por tanto, busca tomar las características con mayor
+valor dentro de una matriz de entrada. Esta matriz suele ser obtenida
+por medio de una convolución previa. Este máximo se toma sobre una
+ventana de tamaño
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi><mo>×</mo><mi>m</mi></mrow><annotation encoding="application/x-tex">m\times m</annotation></semantics></math>
+en la matriz de entrada, lo que reduce el tamaño de la matriz al tomar
+un sólo elemento entre los
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>m</mi><mn>2</mn></msup><annotation encoding="application/x-tex">m^2</annotation></semantics></math>
+elementos originales. Otra forma de realizar el pooling es por medio de
+un promedio.</p>
+<div class="mydef">
+<p><strong>Definición 1.8</strong> (Average-pooling). <em>El
+average-pooling es una estrategía de pooling que toma el valor promedio
+en una ventana de tamaño
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi><mo>×</mo><mi>m</mi></mrow><annotation encoding="application/x-tex">m \times m</annotation></semantics></math>.
+Es decir, obtiene una representación
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+con entradas:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub><mo>=</mo><mfrac><mn>1</mn><mrow><mi>m</mi><mo>⋅</mo><mi>m</mi></mrow></mfrac><munderover><mo>∑</mo><mrow><mi>l</mi><mo>=</mo><mi>i</mi></mrow><mi>m</mi></munderover><munderover><mo>∑</mo><mrow><mi>l</mi><mi>′</mi><mo>=</mo><mi>j</mi></mrow><mi>m</mi></munderover><msub><mi>x</mi><mrow><mi>l</mi><mo>,</mo><mi>l</mi><mi>′</mi></mrow></msub></mrow><annotation encoding="application/x-tex">h_{i,j} = \frac{1}{m\cdot m} \sum_{l=i}^m \sum_{l&#39;=j}^m x_{l,l&#39;}</annotation></semantics></math>
+Donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+es una matriz de entrada.</em></p>
+</div>
+<p>Al igual que el max-pooling, el average-pooling reduce
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>m</mi><mn>2</mn></msup><annotation encoding="application/x-tex">m^2</annotation></semantics></math>
+neuronas en una sola a partir de tomar un valor promedio de los valores
+originales. Generalmente, el pooling toma una ventana que computa alguna
+de estas operaciones, pero en el caso del pooling la ventana no suele
+sobreponerse si no que se toma una partición de la matriz como se ve en
+la Figura <a href="#fig:MaxpoolSample" data-reference-type="ref"
+data-reference="fig:MaxpoolSample">1.7</a> para el max-pooling.</p>
+<figure id="fig:MaxpoolSample">
+<img src="images/MaxpoolSample.png" />
+<figcaption>El pooling toma una ventana, en este caso de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mo>×</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">2\times 2</annotation></semantics></math>,
+y aplica la función, que es el máximo</figcaption>
+</figure>
+<p>En el ejemplo de la Figura <a href="#fig:MaxpoolSample"
+data-reference-type="ref" data-reference="fig:MaxpoolSample">1.7</a> se
+toma un kernel de tamaño
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mo>×</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">2\times 2</annotation></semantics></math>,
+por lo que la matriz original se divide en regiones de este tamaño. El
+resultado son 6 regiones de las cuáles se elige el valor máximo,
+aplicando max-pooling, para generar ahora una nueva matriz con los 6
+valores resultantes.</p>
+<div class="ex">
+<p><strong>Ejemplo 1.4</strong>. <em>Para ejemplificar el uso del
+pooling retomemos el ejemplo anterior donde obtuvimos una matriz al
+aplicar una convolución a una matriz de una imagen de entrada. La matriz
+resultante fue:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>W</mi><mo>⋆</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>7</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>3</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>5</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>3</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>9</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>3</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>9</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>5</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>3</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>3</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>5</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>3</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>3</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>5</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>9</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>3</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>9</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>3</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>5</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>3</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>7</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">(W\star x) =
+    \begin{pmatrix}
+         7 &amp; 0 &amp; 1 &amp; 3 &amp; 5 &amp; 0 &amp; 3 \\
+        0 &amp; 9 &amp; 0 &amp; 3 &amp; 0 &amp; 1 &amp; 0 \\
+        1 &amp; 0 &amp; 9 &amp; 0 &amp; 1 &amp; 0 &amp; 5 \\
+        3 &amp; 3 &amp; 0 &amp; 5 &amp; 0 &amp; 3 &amp; 3 \\
+        5 &amp; 0 &amp; 1 &amp; 0 &amp; 9 &amp; 0 &amp; 1 \\
+        0 &amp; 1 &amp; 0 &amp; 3 &amp; 0 &amp; 9 &amp; 0 \\
+        3 &amp; 0 &amp; 5 &amp; 3 &amp; 1 &amp; 7 &amp; 0
+    \end{pmatrix}</annotation></semantics></math> Si elegimos el método
+de max-pooling con una ventana de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>3</mn><mo>×</mo><mn>3</mn></mrow><annotation encoding="application/x-tex">3\times 3</annotation></semantics></math>,
+tendremos como resultado una matriz de tamaño
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>3</mn><mo>×</mo><mn>3</mn></mrow><annotation encoding="application/x-tex">3 \times 3</annotation></semantics></math>.
+Recordemos que la matriz de entrada debe dividirse en sub-regiones del
+tamaño de la ventana. En este caso, el primer valor del max-pooling se
+aplicaría en la región superior izquierda de la matriz como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>max</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>7</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>9</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>9</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>9</mn></mrow><annotation encoding="application/x-tex">\max \begin{pmatrix}
+        7 &amp; 0 &amp; 1 \\ 
+        0 &amp; 9 &amp; 0 \\
+        1 &amp; 0 &amp; 9
+    \end{pmatrix} = 9</annotation></semantics></math> En este caso, el
+primer valor del max-pooling es 9. Si continuamos de esta forma, el
+resultado será el siguiente:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mi>o</mi><mi>o</mi><mi>l</mi><mi>i</mi><mi>n</mi><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>W</mi><mo>⋆</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>9</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>5</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>5</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>5</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>9</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>3</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>5</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>7</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">Pooling(W\star x) = \begin{pmatrix}
+        9 &amp; 5 &amp; 5 \\
+        5 &amp; 9 &amp; 3 \\
+        5 &amp; 7 &amp; 0
+    \end{pmatrix}</annotation></semantics></math> Esta matriz sigue
+guardando cierta información sobre la diagonal de la imagen original en
+una matriz mucho más pequeña. Esto nos permitirá que la red procese esta
+información de forma más eficiente y preservando aquella información
+relevante. Puede realizarse como ejercicio este mismo ejemplo pero
+utilizando average-pooling.</em></p>
+</div>
+<p>La capa convolucional y el pooling son las dos partes esenciales de
+una convolución en redes neuronales. Como lo vimos, las convoluciones
+son equivariantes ante traslaciones, el pooling tiene sensibilidad
+también ante las traslaciones siendo invariante localmente ante pequeñas
+traslaciones. Estas propiedades permiten que la información relevante de
+las matrices de entrada resalte para que las decisiones de la salida
+sean mejores.</p>
+<h2 id="redes-convolucionales">Redes convolucionales</h2>
+<p>Una vez que hemos revisado las convoluciones y los métodos de pooling
+podemos construir redes neuronales que incorporen este tipo de capas
+para que procesen datos de manera más efectiva. En particular, las redes
+convolucionales muestran un gran desempeño con imágenes como datos de
+entrada. Al igual que las capas densas o las capas recurrentes, las
+capas convolucionales se pueden aplicar de forma secuencial. Es común
+que una capa de este tipo siempre conlleve una convolución, una función
+de activación y pooling. El resultado del pooling es también una matriz
+que puede verse como una representación abstracta de la imagen original
+con base en el kernel. Esta matriz puede pasar por otras capas
+convolucionales; por lo que de manera más general una capa convolucional
+de la red se podría definir como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>W</mi><mo>⋆</mo><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo>−</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub><mo>=</mo><munderover><mo>∑</mo><mrow><mi>l</mi><mo>=</mo><mn>1</mn></mrow><mi>k</mi></munderover><munderover><mo>∑</mo><mrow><mi>l</mi><mi>′</mi><mo>=</mo><mn>1</mn></mrow><mi>k</mi></munderover><msub><mi>W</mi><mrow><mi>l</mi><mo>,</mo><mi>l</mi><mi>′</mi></mrow></msub><msubsup><mi>h</mi><mrow><mi>i</mi><mo>+</mo><mi>l</mi><mo>,</mo><mi>j</mi><mo>+</mo><mi>l</mi><mi>′</mi></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo>−</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></msubsup><mo>+</mo><mi>b</mi></mrow><annotation encoding="application/x-tex">(W\star h^{(k-1)})_{i,j} = \sum_{l=1}^k \sum_{l&#39;=1}^k W_{l,l&#39;} h^{(k-1)}_{i+l, j+l&#39;} + b</annotation></semantics></math>
+Donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo>−</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><annotation encoding="application/x-tex">h^{(k-1)}</annotation></semantics></math>
+es el resultado de aplicar la convolución, la activación y el pooling en
+la capa convolucional anterior. Cada capa oculta convolucional entonces
+será de la forma:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>=</mo><mi>P</mi><mi>o</mi><mi>o</mi><mi>l</mi><mi>i</mi><mi>n</mi><mi>g</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>W</mi><mo>⋆</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">h^{(k)} = Pooling\big(g(W\star x)\big)</annotation></semantics></math>
+Con
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>.</mi><mi>.</mi><mi>.</mi><mo>,</mo><mi>K</mi></mrow><annotation encoding="application/x-tex">k=1,...,K</annotation></semantics></math>
+y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>=</mo><mi>x</mi></mrow><annotation encoding="application/x-tex">h^{(0)}=x</annotation></semantics></math>.
+Dependiendo de la tarea, pueden omitirse algunas capas de pooling. En la
+Figura <a href="#fig:ConvLLayers" data-reference-type="ref"
+data-reference="fig:ConvLLayers">1.8</a> se puede ver el procesamiento
+de una imagen a través de dos capas convolucionales. Cuando se trata de
+imágenes, es común que cada punto esté representado por una píxel de
+tipo RGB (<em>Red, Green, Blue</em>) o bien
+RGB-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
+(donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
+es el valor de transparencia). Es decir, se tienen que cada punto
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">x_{i,j}</annotation></semantics></math>
+es un vector de 3 o 4 dimensiones. A estas dimensiones se les suele
+llamar <strong>canales</strong>. Por tanto, un dato de entrada será de
+la forma
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>∈</mo><msup><mi>ℝ</mi><mrow><mi>H</mi><mi>′</mi><mo>×</mo><mi>L</mi><mi>′</mi><mo>×</mo><mi>C</mi><mi>′</mi></mrow></msup></mrow><annotation encoding="application/x-tex">x \in \mathbb{R}^{H&#39;\times L&#39; \times C&#39;}</annotation></semantics></math>,
+donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>H</mi><mi>′</mi></mrow><annotation encoding="application/x-tex">H&#39;</annotation></semantics></math>
+representa las dimensiones de la altura,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mi>′</mi></mrow><annotation encoding="application/x-tex">L&#39;</annotation></semantics></math>
+las de la anchura y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mi>′</mi></mrow><annotation encoding="application/x-tex">C&#39;</annotation></semantics></math>
+los canales. Asimismo, el kernel será una matriz
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>W</mi><mo>∈</mo><msup><mi>ℝ</mi><mrow><mi>H</mi><mo>×</mo><mi>L</mi><mo>×</mo><mi>C</mi></mrow></msup></mrow><annotation encoding="application/x-tex">W \in \mathbb{R}^{H\times L\times C}</annotation></semantics></math>.
+En este caso, en lugar de trabajar con matrices, trabajamos con tensores
+de rango 3.</p>
+<figure id="fig:ConvLLayers">
+<img src="images/Conv2Layers.png" />
+<figcaption>Dos capas convolucionales aplicadas de forma secuencial a
+una imagen de entrada</figcaption>
+</figure>
+<p>El modificar el número de canales no altera la formulación de la
+operación de convolución. Se debe notar que aunque la entrada tenga un
+número de canales mayor a 1, el kernel puede tener un sólo canal, de tal
+forma que la ecuación de la convolución es una suma ponderada de
+vectores por un escalar. En cualquier caso, las capas convolucionales
+generan representaciones tensoriales de salida. En problemas de
+clasificación, por ejemplo, necesitamos que las salidas correspondan a
+probabilidades de clases que se representan con vectores. Para esto, las
+redes convolucionales, además de las capas convolucionales y de pooling,
+utilizan en la salida capas feedforward. Las capas feedforward toman
+como entrada un vector, por lo que se debe convertir el resultado de las
+convoluciones en un vector de entrada para la feedforward.</p>
+<div class="mydef">
+<p><strong>Definición 1.9</strong> (Flattening). <em>El aplastamiento o
+<em>flattening</em> es el proceso que mapea un tensor a un vector. En
+este sentido, es una operación
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mi>l</mi><mi>a</mi><mi>t</mi><mo>:</mo><msup><mi>ℝ</mi><mrow><mi>H</mi><mo>×</mo><mi>L</mi><mo>×</mo><mi>C</mi></mrow></msup><mo>→</mo><msup><mi>ℝ</mi><mrow><mi>H</mi><mi>L</mi><mi>C</mi></mrow></msup></mrow><annotation encoding="application/x-tex">flat: \mathbb{R}^{H \times L \times C} \to \mathbb{R}^{HLC}</annotation></semantics></math>
+que convierte un tensor con dimensiones
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>H</mi><annotation encoding="application/x-tex">H</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>
+y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>C</mi><annotation encoding="application/x-tex">C</annotation></semantics></math>
+en un vector de tamaño
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>H</mi><mi>L</mi><mi>C</mi></mrow><annotation encoding="application/x-tex">HLC</annotation></semantics></math>.</em></p>
+</div>
+<p>Sabemos que un tensor de cualquier rango es isomorfo a un vector.
+Aprovechando esto, podemos tomar la salida de las capas ocultas, que
+preserva la información relevante de la imagen, para que sea la entrada
+de capas feedforward con las que obtendremos las salidas. El uso de
+capas convolucionales presenta varías ventajas, pues genera
+representaciones que conservan la información más relevante de las
+entradas, y reduce el tamaño de estas para que su procesamiento por las
+capas sea más eficiente.</p>
+<p>En general, entonces, podemos entender una red neuronal convolucional
+de la siguiente forma:</p>
+<div class="mydef">
+<p><strong>Definición 1.10</strong> (Red neuronal convolucional).
+<em>Una red neuronal convolucional es una arquitectura neuronal
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>
+que cuenta con los siguientes elementos:</em></p>
+<ol>
+<li><p><em>Capas convolucionales:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>=</mo><mi>P</mi><mi>o</mi><mi>o</mi><mi>l</mi><mi>i</mi><mi>n</mi><mi>g</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>W</mi><mo>⋆</mo><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo>−</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">h^{(k)} = Pooling\big(g(W\star h^{(k-1)})\big)</annotation></semantics></math>
+Con
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>.</mi><mi>.</mi><mi>.</mi><mo>,</mo><mi>K</mi></mrow><annotation encoding="application/x-tex">k=1,...,K</annotation></semantics></math>
+y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>=</mo><mi>x</mi></mrow><annotation encoding="application/x-tex">h^{(0)} = x</annotation></semantics></math>.</em></p></li>
+<li><p><em>Capas feedforward para obtener salidas, dada la última capa
+convolucional:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>F</mi><mi>F</mi><mi>W</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><mi>f</mi><mi>l</mi><mi>a</mi><mi>t</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>K</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f(x) = FFW\big( flat(h^{(K)}) \big)</annotation></semantics></math>
+Donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mi>F</mi><mi>W</mi></mrow><annotation encoding="application/x-tex">FFW</annotation></semantics></math>
+es una arquitectura de red feedforward que toma el aplastamiento de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>K</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><annotation encoding="application/x-tex">h^{(K)}</annotation></semantics></math>
+como entrada.</em></p></li>
+</ol>
+</div>
+<figure id="fig:ConvRep">
+<img src="images/ConvRep.png" />
+<figcaption>Representación de vectores aplastados en una red
+convolucional para el problema MNIST</figcaption>
+</figure>
+<p>En las redes neuronales se pueden combinar diferentes tipos de capas
+según el propósito de la red. Por ejemplo, si lo que se desea es
+procesar una secuencia de imágenes, se puede utilizar una red recurrente
+que tenga en las primeras capas operaciones convolucionales. A las redes
+convolucionales las abreviaremos CNN (de <em>Convolutional Neural
+Network</em>). Cabe mencionar que las redes convolucionales también
+generan representaciones que permiten la solución de los problemas de
+manera efectiva. Por ejemplo, en la Figura <a href="#fig:ConvRep"
+data-reference-type="ref" data-reference="fig:ConvRep">1.9</a> se
+muestran las representaciones que obtiene una red convolucional al ser
+entrenada con datos de MNIST <span class="citation"
+data-cites="lecun1998gradient"></span>, el cual consta de imágenes de
+dígitos (del 0 al 9) escritos a mano. El objetivo es clasificarlos en el
+número adecuado. Por tanto, la representación aprendida separa el
+espacio en 10 regiones en donde una capa de salida feedforward puede
+clasificarlos sin problemas.</p>
+<h2 id="sec:trainConv">Entrenamiento en capas convolucionales</h2>
+<p>En las redes convolucionales, los parámetros están dados por los
+kernels, que contienen los pesos que se deben aprender. Como mencionamos
+en la Sección <a href="#sec:ConvLayer" data-reference-type="ref"
+data-reference="sec:ConvLayer">1.2</a>, las capas convolucionales pueden
+verse como capas con conectividad dispersa. Por lo que su gradiente
+tendrá similitudes con el de las feedforwward, pero, de hecho, será más
+simple en tanto se tienen menos conexiones. Para determinar la
+retro-propagación en las redes convolucionales considérese que nuestra
+función objetivo está dada como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><munder><mo>∑</mo><mi>x</mi></munder><munder><mo>∑</mo><mi>y</mi></munder><mi>L</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo>,</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">R(\theta) = \sum_x \sum_y L(y,f(x))</annotation></semantics></math>
+Donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f(x)</annotation></semantics></math>
+es la red con capas convolucionales. Por ahora, supongamos que tenemos
+una capa convolucional con parámetros
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>W</mi><mo>∈</mo><msup><mi>ℝ</mi><mrow><mi>H</mi><mo>×</mo><mi>L</mi></mrow></msup></mrow><annotation encoding="application/x-tex">W \in \mathbb{R}^{H \times L}</annotation></semantics></math>.
+Entonces, derivando sobre la función de pérdida podemos observar:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><mfrac><mrow><mi>∂</mi><mi>L</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo>,</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mi>∂</mi><msub><mi>W</mi><mrow><mi>u</mi><mo>,</mo><mi>v</mi></mrow></msub></mrow></mfrac></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mfrac><mrow><mi>∂</mi><mi>L</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo>,</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mi>∂</mi><mi>h</mi></mrow></mfrac><mfrac><mrow><mi>∂</mi><mi>h</mi></mrow><mrow><mi>∂</mi><msub><mi>W</mi><mrow><mi>u</mi><mo>,</mo><mi>v</mi></mrow></msub></mrow></mfrac></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mfrac><mrow><mi>∂</mi><mi>L</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo>,</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mi>∂</mi><mi>h</mi></mrow></mfrac><mfrac><mrow><mi>∂</mi><mi>P</mi><mi>o</mi><mi>o</mi><mi>l</mi></mrow><mrow><mi>∂</mi><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>W</mi><mo>⋆</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac><mfrac><mrow><mi>∂</mi><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>W</mi><mo>⋆</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mi>∂</mi><mi>W</mi><mo>⋆</mo><mi>x</mi></mrow></mfrac><mfrac><mrow><mi>∂</mi><mi>W</mi><mo>⋆</mo><mi>x</mi></mrow><mrow><mi>∂</mi><msub><mi>W</mi><mrow><mi>u</mi><mo>,</mo><mi>v</mi></mrow></msub></mrow></mfrac></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+    \frac{\partial L(y, f(x))}{\partial W_{u,v}} &amp;= \frac{\partial L(y,f(x))}{\partial h} \frac{\partial h}{\partial W_{u,v}} \\
+            &amp;= \frac{\partial L(y,f(x))}{\partial h} \frac{\partial Pool}{\partial g(W\star x)} \frac{\partial g(W\star x)}{\partial W\star x}\frac{\partial W\star x}{\partial W_{u,v}} \\
+\end{aligned}</annotation></semantics></math> En este caso
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mi>o</mi><mi>o</mi><mi>l</mi></mrow><annotation encoding="application/x-tex">Pool</annotation></semantics></math>
+denota la capa de pooling que toma como argumento a la salida de la capa
+de convolución. Podemos utilizar una notación como la que hemos venido
+usando, y llamar a la pre-activación
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mo>=</mo><mi>W</mi><mo>⋆</mo><mi>x</mi></mrow><annotation encoding="application/x-tex">a = W\star x</annotation></semantics></math>.
+Por tanto, en la derivación de la red convolucional, las primeras
+derivadas parciales corresponden a la red feedforward, las cuales ya han
+sido estudiadas en la Sección <a href="#sec:backprop"
+data-reference-type="ref"
+data-reference="sec:backprop">[sec:backprop]</a>. Propiamente, en la
+parte convolucional tenemos las derivadas sobre el pooling, la función
+de activación y la operación de convolución.</p>
+<p>Para las capas de pooling, las derivadas son sencillas tanto para el
+caso de average-pooling como el de max-pooling. Se tienen los siguientes
+resultados.</p>
+<div class="prop">
+<p><strong>Proposición 1.3</strong>. <em>La derivada del average-pooling
+para una ventana de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>H</mi><mo>×</mo><mi>L</mi></mrow><annotation encoding="application/x-tex">H \times L</annotation></semantics></math>
+sobre la entrada
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mrow><mi>u</mi><mo>,</mo><mi>v</mi></mrow></msub><annotation encoding="application/x-tex">x_{u,v}</annotation></semantics></math>
+está dada como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mrow><mi>∂</mi><mi>P</mi><mi>o</mi><mi>o</mi><mi>l</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mi>∂</mi><msub><mi>x</mi><mrow><mi>u</mi><mo>,</mo><mi>v</mi></mrow></msub></mrow></mfrac><mo>=</mo><mfrac><mn>1</mn><mrow><mi>H</mi><mo>⋅</mo><mi>L</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">\frac{\partial Pool(x)}{\partial x_{u,v}} = \frac{1}{H \cdot L}</annotation></semantics></math>
+Donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>H</mi><annotation encoding="application/x-tex">H</annotation></semantics></math>
+es la altura de la ventana del pooling y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>
+su anchura.</em></p>
+</div>
+<div class="prop">
+<p><strong>Proposición 1.4</strong>. <em>La derivada del max-pooling
+sobre la entrada
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>a</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>u</mi><mo>,</mo><mi>v</mi></mrow></msub></mrow><annotation encoding="application/x-tex">g(a)_{u,v}</annotation></semantics></math>
+está dada como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mrow><mi>∂</mi><mi>P</mi><mi>o</mi><mi>o</mi><mi>l</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>a</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mi>∂</mi><mi>g</mi><msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>a</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>u</mi><mo>,</mo><mi>v</mi></mrow></msub></mrow></mfrac><mo>=</mo><msub><mi>δ</mi><mrow><mo>max</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mrow><mi>u</mi><mo>,</mo><mi>v</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow></msub></mrow><annotation encoding="application/x-tex">\frac{\partial Pool(g(a))}{\partial g(a)_{u,v}} = \delta_{\max(x_{u,v}) }</annotation></semantics></math>
+Donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mrow><mo>max</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mrow><mi>u</mi><mo>,</mo><mi>v</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow></msub><annotation encoding="application/x-tex">\delta_{\max(x_{u,v})}</annotation></semantics></math>
+es 1 si el valor es el máximo en la ventana del pooling, y 0 en otro
+caso.</em></p>
+</div>
+<p>En el caso del gradiente de la convolución, como mencionábamos, es
+similar al de las capas densas (lineales) pero con un número menor de
+pesos. Podemos comprobar fácilmente el siguiente resultado.</p>
+<div class="theo">
+<p><strong>Teorema 1.2</strong>. <em>Sea
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>W</mi><mo>∈</mo><msup><mi>ℝ</mi><mrow><mi>H</mi><mo>×</mo><mi>L</mi></mrow></msup></mrow><annotation encoding="application/x-tex">W \in \mathbb{R}^{H\times L}</annotation></semantics></math>
+el kernel de una capa convolucional, entonces tenemos que las derivadas
+parciales sobre la operación de convolución son:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mrow><mi>∂</mi><mi>W</mi><mo>⋆</mo><mi>x</mi></mrow><mrow><mi>∂</mi><msub><mi>W</mi><mrow><mi>u</mi><mo>,</mo><mi>v</mi></mrow></msub></mrow></mfrac><mo>=</mo><munder><mo>∑</mo><mi>i</mi></munder><munder><mo>∑</mo><mi>j</mi></munder><msub><mi>x</mi><mrow><mi>i</mi><mo>+</mo><mi>u</mi><mo>,</mo><mi>j</mi><mo>+</mo><mi>v</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\frac{\partial W\star x}{\partial W_{u,v}} = \sum_i \sum_j x_{i+u, j+v}</annotation></semantics></math>
+Donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mrow><mi>i</mi><mo>+</mo><mi>u</mi><mo>,</mo><mi>j</mi><mo>+</mo><mi>v</mi></mrow></msub><annotation encoding="application/x-tex">x_{i+u,j+v}</annotation></semantics></math>
+son los valores que multiplican a
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>W</mi><mrow><mi>u</mi><mo>,</mo><mi>v</mi></mrow></msub><annotation encoding="application/x-tex">W_{u,v}</annotation></semantics></math>
+durante la convolución.</em></p>
+</div>
+<div class="proof">
+<p><em>Proof.</em> Supongamos que tenemos un kernel
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>W</mi><annotation encoding="application/x-tex">W</annotation></semantics></math>
+de tamaño
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>H</mi><mo>×</mo><mi>L</mi></mrow><annotation encoding="application/x-tex">H \times L</annotation></semantics></math>,
+entonces, en cada neurona del resultado de la convolución, tenemos.
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><mfrac><mrow><mi>∂</mi><msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>W</mi><mo>⋆</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub></mrow><mrow><mi>∂</mi><msub><mi>W</mi><mrow><mi>u</mi><mo>,</mo><mi>v</mi></mrow></msub></mrow></mfrac></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mfrac><mi>∂</mi><mrow><mi>∂</mi><msub><mi>W</mi><mrow><mi>u</mi><mo>,</mo><mi>v</mi></mrow></msub></mrow></mfrac><munderover><mo>∑</mo><mrow><mi>l</mi><mo>=</mo><mn>0</mn></mrow><mi>H</mi></munderover><munderover><mo>∑</mo><mrow><mi>l</mi><mi>′</mi><mo>=</mo><mn>0</mn></mrow><mi>L</mi></munderover><msub><mi>W</mi><mrow><mi>l</mi><mo>,</mo><mi>l</mi><mi>′</mi></mrow></msub><msub><mi>x</mi><mrow><mi>i</mi><mo>+</mo><mi>l</mi><mo>,</mo><mi>j</mi><mo>+</mo><mi>l</mi><mi>′</mi></mrow></msub></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><munderover><mo>∑</mo><mrow><mi>l</mi><mo>=</mo><mn>0</mn></mrow><mi>H</mi></munderover><munderover><mo>∑</mo><mrow><mi>l</mi><mi>′</mi><mo>=</mo><mn>0</mn></mrow><mi>L</mi></munderover><mfrac><mi>∂</mi><mrow><mi>∂</mi><msub><mi>W</mi><mrow><mi>u</mi><mo>,</mo><mi>v</mi></mrow></msub></mrow></mfrac><msub><mi>W</mi><mrow><mi>l</mi><mo>,</mo><mi>l</mi><mi>′</mi></mrow></msub><msub><mi>x</mi><mrow><mi>i</mi><mo>+</mo><mi>l</mi><mo>,</mo><mi>j</mi><mo>+</mo><mi>l</mi><mi>′</mi></mrow></msub></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><msub><mi>x</mi><mrow><mi>i</mi><mo>+</mo><mi>u</mi><mo>,</mo><mi>j</mi><mo>+</mo><mi>v</mi></mrow></msub></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+        \frac{\partial (W\star x)_{i,j}}{\partial W_{u,v}} &amp;= \frac{\partial}{\partial W_{u,v}} \sum_{l=0}^H \sum_{l&#39;=0}^L W_{l,l&#39;} x_{i+l,j+l&#39;} \\
+                &amp;= \sum_{l=0}^H \sum_{l&#39;=0}^L \frac{\partial}{\partial W_{u,v}} W_{l,l&#39;} x_{i+l,j+l&#39;} \\
+                &amp;= x_{i+u, j+v}
+    
+\end{aligned}</annotation></semantics></math> Ya que el kernel se mueve
+por diferentes regiones en
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>,
+la derivada parcial resulta de todos los elementos
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mrow><mi>i</mi><mo>+</mo><mi>u</mi><mo>,</mo><mi>j</mi><mo>+</mo><mi>v</mi></mrow></msub><annotation encoding="application/x-tex">x_{i+u, j+v}</annotation></semantics></math>
+que multiplican el peso
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>W</mi><mrow><mi>u</mi><mo>,</mo><mi>v</mi></mrow></msub><annotation encoding="application/x-tex">W_{u,v}</annotation></semantics></math>
+del kernel. ◻</p>
+</div>
+<p>Como se puede observar, las derivadas sobre una capa convolucional
+son sencillas y pueden realizarse de manera eficiente con menor costo
+que las redes feedforward o recurrentes. Asimismo, también se pueden
+aplicar gráficas computacionales para la retro-propagación. En este
+caso, la función de convolución y el pooling pueden verse como nodos
+distintos como se muestra en la Figura <a href="#fig:ConvGraph"
+data-reference-type="ref" data-reference="fig:ConvGraph">1.10</a></p>
+<figure id="fig:ConvGraph">
+<img src="images/ConvGraph.png" />
+<figcaption>Gráfica computacional para implementación de una red
+convolucional</figcaption>
+</figure>
+<div class="ex">
+<p><strong>Ejemplo 1.5</strong>. <em>Supongamos que tenemos una red
+convolucional simple que cuenta sólo con una capa convolucional con
+max-pooling y función de activación ReLU que usaremos para
+clasificación. Entonces contamos con las siguientes capas:</em></p>
+<ol>
+<li><p><em>Capa convolucional: Dada por la operación de convolución con
+un kernel
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>W</mi><mo>∈</mo><msup><mi>ℝ</mi><mrow><mn>3</mn><mo>×</mo><mn>3</mn></mrow></msup></mrow><annotation encoding="application/x-tex">W \in \mathbb{R}^{3\times 3}</annotation></semantics></math>
+de la forma:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mo>=</mo><munder><mo>∑</mo><mi>l</mi></munder><munder><mo>∑</mo><mrow><mi>l</mi><mi>′</mi></mrow></munder><msub><mi>W</mi><mrow><mi>l</mi><mo>,</mo><mi>l</mi><mi>′</mi></mrow></msub><msub><mi>x</mi><mrow><mi>i</mi><mo>+</mo><mi>l</mi><mo>,</mo><mi>i</mi><mo>+</mo><mi>l</mi><mi>′</mi></mrow></msub></mrow><annotation encoding="application/x-tex">a = \sum_l \sum_{l&#39;} W_{l,l&#39;} x_{i+l, i+l&#39;}</annotation></semantics></math></em></p></li>
+<li><p><em>Una función de activación ReLU sobre el resultado de la
+convolución:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo>=</mo><mi>R</mi><mi>e</mi><mi>L</mi><mi>U</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>a</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">h = ReLU(a)</annotation></semantics></math>.</em></p></li>
+<li><p><em>La capa de max-pooling sobre la convolución con
+activación.</em></p></li>
+<li><p><em>Una capa de salida dada por una matriz de pesos
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>W</mi><mrow><mi>o</mi><mi>u</mi><mi>t</mi></mrow></msup><annotation encoding="application/x-tex">W^{out}</annotation></semantics></math>
+cuya pre-activación está dada como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>a</mi><mrow><mi>o</mi><mi>u</mi><mi>t</mi></mrow></msup><mo>=</mo><msup><mi>W</mi><mrow><mi>o</mi><mi>u</mi><mi>t</mi></mrow></msup><mi>h</mi><mo>+</mo><mi>b</mi></mrow><annotation encoding="application/x-tex">a^{out} = W^{out}h + b</annotation></semantics></math>
+Asumimos que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+ha sido aplastado.</em></p></li>
+<li><p><em>Capa de activación de salida dada por la función
+softmax.</em></p></li>
+<li><p><em>Función de riesgo de entropía cruzada.</em></p></li>
+</ol>
+<p><em>Sabemos que la derivada de la entropía cruzada sobre la
+pre-activación de la salida es de la siguiente forma:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mrow><mi>∂</mi><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mi>∂</mi><msub><mi>f</mi><mi>y</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac><mfrac><mrow><mi>∂</mi><msub><mi>f</mi><mi>y</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mi>∂</mi><msup><mi>a</mi><mrow><mi>o</mi><mi>u</mi><mi>t</mi></mrow></msup></mrow></mfrac><mo>=</mo><msub><mi>f</mi><mi>y</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><msub><mi>δ</mi><mrow><mi>x</mi><mo>,</mo><mi>y</mi></mrow></msub></mrow><annotation encoding="application/x-tex">\frac{\partial R(\theta)}{\partial f_y(x)} \frac{\partial f_y(x)}{\partial a^{out}} = f_y(x) - \delta_{x,y}</annotation></semantics></math>
+Asimismo, en las pre-activación de la salida tenemos que:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mrow><mi>∂</mi><msup><mi>a</mi><mrow><mi>o</mi><mi>u</mi><mi>t</mi></mrow></msup></mrow><mrow><mi>∂</mi><msub><mi>h</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub></mrow></mfrac><mo>=</mo><msubsup><mi>W</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow><mrow><mi>o</mi><mi>u</mi><mi>t</mi></mrow></msubsup></mrow><annotation encoding="application/x-tex">\frac{\partial a^{out}}{\partial h_{i,j}} = W^{out}_{i,j}</annotation></semantics></math>
+A partir de esto podemos desarrollar las derivadas sobre los pesos del
+kernel de la siguiente forma:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><mfrac><mrow><mi>∂</mi><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mi>∂</mi><msub><mi>W</mi><mrow><mi>u</mi><mo>,</mo><mi>v</mi></mrow></msub></mrow></mfrac></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mfrac><mrow><mi>∂</mi><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mi>∂</mi><msub><mi>h</mi><mrow><mi>u</mi><mo>,</mo><mi>v</mi></mrow></msub></mrow></mfrac><mfrac><mrow><mi>∂</mi><msub><mi>h</mi><mrow><mi>u</mi><mo>,</mo><mi>v</mi></mrow></msub></mrow><mrow><mi>∂</mi><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>a</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac><mfrac><mrow><mi>∂</mi><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>a</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mi>∂</mi><mi>a</mi></mrow></mfrac><mfrac><mrow><mi>∂</mi><mi>W</mi><mo>⋆</mo><mi>x</mi></mrow><mrow><mi>∂</mi><msub><mi>W</mi><mrow><mi>u</mi><mo>,</mo><mi>v</mi></mrow></msub></mrow></mfrac></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">(</mo><munder><mo>∑</mo><mi>q</mi></munder><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>f</mi><mi>q</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><msub><mi>δ</mi><mrow><mi>y</mi><mo>,</mo><mi>q</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><msubsup><mi>W</mi><mrow><mi>q</mi><mo>,</mo><mi>y</mi></mrow><mrow><mi>o</mi><mi>u</mi><mi>t</mi></mrow></msubsup><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">)</mo><msub><mi>δ</mi><mo>max</mo></msub><msub><mi>δ</mi><mrow><mo>&gt;</mo><mn>0</mn></mrow></msub><munder><mo>∑</mo><mi>i</mi></munder><munder><mo>∑</mo><mi>j</mi></munder><msub><mi>x</mi><mrow><mi>i</mi><mo>+</mo><mi>u</mi><mo>,</mo><mi>j</mi><mo>+</mo><mi>v</mi></mrow></msub></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+        \frac{\partial R(\theta)}{\partial W_{u,v}} &amp;= \frac{\partial R(\theta)}{\partial h_{u,v}} \frac{\partial h_{u,v}}{\partial g(a)}\frac{\partial g(a)}{\partial a} \frac{\partial W\star x}{\partial W_{u,v}} \\ 
+        &amp;= \Big( \sum_q (f_q(x) - \delta_{y,q}) W^{out}_{q,y} \Big) \delta_{\max} \delta_{&gt;0} \sum_i \sum_j x_{i+u, j+v}
+    
+\end{aligned}</annotation></semantics></math> Hemos denotado como
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>δ</mi><mrow><mo>&gt;</mo><mn>0</mn></mrow></msub><mo>=</mo><mfrac><mn>1</mn><mrow><mo stretchy="true" form="prefix">|</mo><mi>a</mi><mo stretchy="true" form="postfix">|</mo></mrow></mfrac><mo>max</mo><mo stretchy="false" form="prefix">{</mo><mn>0</mn><mo>,</mo><mi>a</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\delta_{&gt;0} = \frac{1}{|a|}\max\{0, a\}</annotation></semantics></math>
+a la derivada de la función ReLU. Aplicando un optimizador, podemos
+entonces actualizar los pesos sobre esta capa convolucional.</em></p>
+</div>
+<h2 class="unnumbered" id="ejercicios">Ejercicios</h2>
+<ol>
+<li><p>Demuestra que la correlación cruzada entre la función sigmoide
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\sigma(x)</annotation></semantics></math>
+y la función indicadora
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mn>1</mn><mrow><mo>&gt;</mo><mn>0</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">1_{&gt;0}(x)</annotation></semantics></math>,
+que es 1 cuando
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+es positiva y 0 en otro caso, es la función:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">(</mo><msub><mn>1</mn><mrow><mo>&gt;</mo><mn>0</mn></mrow></msub><mo>⋆</mo><mi>σ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>ln</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>+</mo><msup><mi>e</mi><mrow><mo>−</mo><mi>x</mi></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">(1_{&gt;0} \star \sigma)(x) = \ln(1+e^{-x})</annotation></semantics></math></p></li>
+<li><p>Aplicar la operación de convolución sobre la matriz:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>5</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>3</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>2</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>5</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>3</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>3</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>5</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>7</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>8</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>2</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>5</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>6</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>5</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>4</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>3</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>3</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>6</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>2</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>3</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>3</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>7</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>2</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>5</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>9</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>9</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>3</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>9</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>8</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>2</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>3</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>2</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>2</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">x =
+    \begin{pmatrix}
+        5 &amp; 3 &amp; -1 &amp; 2 &amp; -5 &amp; 0 &amp; 3 \\
+        3 &amp; -1 &amp; 5 &amp; 7 &amp; 0 &amp; -1 &amp; 0 \\
+        -1 &amp; 8 &amp; 2 &amp; 5 &amp; 1 &amp; 6 &amp; -5 \\
+        4 &amp; 3 &amp; -3 &amp; 6 &amp; 2 &amp; 3 &amp; -3 \\
+        7 &amp; 2 &amp; 5 &amp; 9 &amp; 0 &amp; 0 &amp; -1 \\
+        -9 &amp; 1 &amp; 0 &amp; 3 &amp; 0 &amp; 9 &amp; 0 \\
+        8 &amp; 2 &amp; 3 &amp; 2 &amp; 0 &amp; 1 &amp; 2
+    \end{pmatrix}</annotation></semantics></math></p>
+<p>Con el siguiente kernel:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>W</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>9</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">W = \begin{pmatrix}
+        -1 &amp; -1 &amp; -1 \\
+        -1 &amp; 9 &amp; -1 \\
+        -1 &amp; -1 &amp; -1
+    \end{pmatrix}</annotation></semantics></math></p></li>
+<li><p>Del resultado de la convolución del ejercicio anterior, aplica la
+función ReLU y utiliza max-pooling con una ventana de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mo>×</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">2\times 2</annotation></semantics></math>.</p></li>
+<li><p>De la matriz en el ejercicio 2, aplica una operación de
+convolución con el siguiente kernel:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>W</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">W = \begin{pmatrix}
+        0 &amp; 1 &amp; 0 \\
+        1 &amp; -1 &amp; 1 \\
+        0 &amp; 1 &amp; 0
+    \end{pmatrix}</annotation></semantics></math> Aplica entonces
+activación ReLU y average-pooling en una ventana de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mo>×</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">2\times 2</annotation></semantics></math>.</p></li>
+<li><p>Demuestra que las derivadas parciales del average-pooling están
+dadas como:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mrow><mi>∂</mi><mi>P</mi><mi>o</mi><mi>o</mi><mi>l</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>a</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mi>∂</mi><mi>g</mi><msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>a</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mi>u</mi><mo>,</mo><mi>v</mi></mrow></msub></mrow></mfrac><mo>=</mo><mfrac><mn>1</mn><mrow><mi>H</mi><mi>L</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">\frac{\partial Pool(g(a))}{\partial g(a)_{u,v}} = \frac{1}{HL}</annotation></semantics></math>.</p></li>
+<li><p>Implementa una red convolucional para el problema de
+clasificiación de digitos con MNIST (éste se puede encontrar en la
+biblioteca <code>sklearn</code>).</p></li>
+</ol>
+</body>
+</html>

@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Regularización</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Regularización</h1>
+<p class="date"> </p>
+</header>
+
+<p>Las redes neuronales son capaces de adaptarse a los datos de manera
+muy precisa debido a su gran capacidad, a la propiedad de ser
+aproximadores universales. Sin embargo, esto puede ser un problema
+cuando los datos con los que contamos no son lo suficientemente grandes.
+Si la red neuronal se ajusta demasiado a los datos de entrenamiento,
+puede pasar que su desempeño sobre nuevos datos sea malo. Es decir,
+podemos pensar que más que aprender, la red neuronal está memorizando.
+Ante esto, la red neuronal, a pesar de minimizar considerablemente el
+riesgo de entrenamiento, no será capaz de resolver el problema de forma
+general.</p>
+<p>Para lidiar con estos problemas, se proponen los llamados métodos de
+regularización. Los métodos de regularización buscan reducir el
+sobre-ajuste durante el aprendizaje en redes neuronales. <span
+class="citation" data-cites="goodfellow2016deep"></span> entienden a los
+métodos de regularización como una modificación del algoritmo de
+aprendizaje en redes profundas que reduce el riesgo de generalización,
+sin afectar (o afectando lo menos posible) al error de
+entrenamiento.</p>
+<p>Existen diversas técnicas de regularización, algunas de las más
+conocidas son la penalización
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mn>2</mn></msub><annotation encoding="application/x-tex">L_2</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mn>1</mn></msub><annotation encoding="application/x-tex">L_1</annotation></semantics></math>
+o el dropout. Aquí revisamos estas técnicas y algunos otros métodos de
+regularización. En la práctica será común usar modelos profundos de
+grandes capacidades incorporando métodos adecuados de
+regularización.</p>
+<h2 id="regularización-de-tychonoff">Regularización de Tychonoff</h2>
+<p>Uno de los tipos más comunes de regularización se conoce como la
+regularización de Tychonoff, comúnmente llamada en el área <em>weight
+decay</em>. La idea de este tipo de regularización es sumar a la función
+de riesgo original un factor que nos ayude a evitar el sobre-ajuste
+limitando el espacio de búsqueda a una región acotada. Abordamos la
+perspectiva de <span class="citation"
+data-cites="vapnik1998statistical"></span> y definimos, de forma
+general, la regularización de Tychonoff y posteriormente damos casos
+concretas de ésta: la regularización
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mn>2</mn></msub><annotation encoding="application/x-tex">L_2</annotation></semantics></math>
+y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mn>1</mn></msub><annotation encoding="application/x-tex">L_1</annotation></semantics></math>.</p>
+<div class="mydef">
+<p><strong>Definición 1.1</strong> (Regularización de Tychonoff).
+<em>Dado una función objetivo
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">R(\theta)</annotation></semantics></math>
+para aprendizaje sobre redes neuronales, definimos la regularización de
+Tychonoff como la función
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>R</mi><mo accent="true">̂</mo></mover><mo>:</mo><mi>Θ</mi><mo>→</mo><msup><mi>ℝ</mi><mo>+</mo></msup></mrow><annotation encoding="application/x-tex">\hat{R}: \Theta \to \mathbb{R}^+</annotation></semantics></math>
+dada por:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>R</mi><mo accent="true">̂</mo></mover><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mi>γ</mi><mi>Ω</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\label{eq;tychoni}
+    \hat{R}(\theta) = R(\theta) + \gamma \Omega(\theta)</annotation></semantics></math>
+Donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>γ</mi><mo>∈</mo><msup><mi>ℝ</mi><mo>+</mo></msup></mrow><annotation encoding="application/x-tex">\gamma \in \mathbb{R}^+</annotation></semantics></math>
+es un hiperparámetro que controla la influencia de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Ω</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\Omega(\theta)</annotation></semantics></math>
+y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Ω</mi><mo>:</mo><mi>Θ</mi><mo>→</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">\Omega: \Theta \to \mathbb{R}</annotation></semantics></math>
+es un funcional que cumple lo siguiente:</em></p>
+<ul>
+<li><p><em><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Ω</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\Omega(\theta)</annotation></semantics></math>
+es positivo para todo
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi><mo>∈</mo><mi>Θ</mi></mrow><annotation encoding="application/x-tex">\theta \in \Theta</annotation></semantics></math>.</em></p></li>
+<li><p><em>El conjunto
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>=</mo><mo stretchy="false" form="prefix">{</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mo>⋅</mo><mo>;</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>:</mo><mi>Ω</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>≤</mo><mi>c</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">M = \{ f(\cdot ; \theta) : \Omega(\theta) \leq c \}</annotation></semantics></math>
+para
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mo>≥</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">c \geq 0</annotation></semantics></math>
+es compacto.</em></p></li>
+</ul>
+</div>
+<p>Esta definición generaliza una familia de regularizadores basados en
+la restricción del espacio de búsqueda a una región compacta determinada
+por la función
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Ω</mi><annotation encoding="application/x-tex">\Omega</annotation></semantics></math>.
+El factor
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>γ</mi><mi>Ω</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\gamma \Omega(\theta)</annotation></semantics></math>
+modifica los valores de la función de riesgo; sin embargo, se puede
+mostrar que bajo ciertas condiciones, la convergencia a la solución
+adecuada se presenta al aplicar la regularización, evitando el
+sobre-ajuste. Esto se muestra en el siguiente teorema, cuyos detalles
+técnicos pueden omitirse en una lectura más técnica.</p>
+<div class="theo">
+<p><strong>Teorema 1.1</strong>. <em>Sea
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Θ</mi><annotation encoding="application/x-tex">\Theta</annotation></semantics></math>
+un espacio de Hilbert y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Ω</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><mi>θ</mi><msup><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">\Omega(\theta) = ||\theta||^2</annotation></semantics></math>
+su norma. Supóngase que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>≤</mo><mi>δ</mi></mrow><annotation encoding="application/x-tex">R(\theta) \leq \delta</annotation></semantics></math>
+y sea
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>γ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>δ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\gamma(\delta)</annotation></semantics></math>
+un hiperparámetro que depende de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>
+tal que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>γ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>δ</mi><mo stretchy="true" form="postfix">)</mo></mrow><msub><mo>→</mo><mrow><mi>δ</mi><mo>→</mo><mn>0</mn></mrow></msub><mn>0</mn></mrow><annotation encoding="application/x-tex">\gamma(\delta) \to_{\delta \to 0} 0</annotation></semantics></math>,
+y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>lim</mo><mrow><mi>δ</mi><mo>→</mo><mn>0</mn></mrow></msub><mfrac><msup><mi>δ</mi><mn>2</mn></msup><mrow><mi>γ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>δ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\lim_{\delta \to 0} \frac{\delta^2}{\gamma(\delta)} = 0</annotation></semantics></math>,
+entonces la regularización de Tychonoff converge a la solución exacta
+(si es que existe) cuando
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>δ</mi><mo>→</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\delta \to 0</annotation></semantics></math>.</em></p>
+</div>
+<div class="proof">
+<p><em>Proof.</em> En primer lugar, tómese
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>γ</mi><mo>=</mo><mi>γ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>δ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\gamma = \gamma(\delta)</annotation></semantics></math>,
+lo que el teorema nos dice es que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>γ</mi><mo>→</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\gamma \to 0</annotation></semantics></math>
+cuando
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>δ</mi><mo>→</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\delta \to 0</annotation></semantics></math>,
+es decir, cuando el error de la función de riesgo original
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">R(\theta)</annotation></semantics></math>
+tiende a 0. Sea
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>θ</mi><mi>δ</mi><mi>γ</mi></msubsup><annotation encoding="application/x-tex">\theta_\delta^\gamma</annotation></semantics></math>
+los parámetros obtenidos con la función de regularización con parámetro
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>
+y alcanzando
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>≤</mo><mi>δ</mi></mrow><annotation encoding="application/x-tex">R(\theta) \leq \delta</annotation></semantics></math>.</p>
+<p>En primer lugar, el riesgo con regularización requiere que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><msubsup><mi>θ</mi><mi>δ</mi><mi>γ</mi></msubsup><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><mo>≤</mo><mi>c</mi></mrow><annotation encoding="application/x-tex">||\theta_\delta^\gamma|| \leq c</annotation></semantics></math>
+sea compacto (esto se da por las propiedades de los espacios de
+Hilbert). La compacidad nos permite asegurar que la secuencia de
+parámetros
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>θ</mi><mi>δ</mi><mi>γ</mi></msubsup><annotation encoding="application/x-tex">\theta_\delta^\gamma</annotation></semantics></math>
+converge a un punto dentro del subespacio compacto
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>M</mi><mi>Θ</mi></msub><mo>=</mo><mo stretchy="false" form="prefix">{</mo><mi>θ</mi><mo>:</mo><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><mi>θ</mi><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><mo>≤</mo><mi>c</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">M_\Theta = \{ \theta : ||\theta|| \leq c \}</annotation></semantics></math>.</p>
+<p>Sea
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>θ</mi><mo>*</mo></msup><annotation encoding="application/x-tex">\theta^*</annotation></semantics></math>
+los parámetros óptimos. Dado que la función de riesgo con regularización
+minimiza
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">R(\theta)</annotation></semantics></math>,
+podemos ver que en general
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>θ</mi><mo>*</mo></msup><mo stretchy="true" form="postfix">)</mo></mrow><mo>≤</mo><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><msubsup><mi>θ</mi><mi>δ</mi><mi>γ</mi></msubsup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">R(\theta^*) \leq R(\theta^\gamma_\delta)</annotation></semantics></math>.
+Geométricamente, podemos pensar que los valores
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>θ</mi><mi>δ</mi><mi>γ</mi></msubsup><annotation encoding="application/x-tex">\theta_\delta^\gamma</annotation></semantics></math>
+se encuentran en una región de mayor radio que de los de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>θ</mi><mo>*</mo></msup><annotation encoding="application/x-tex">\theta^*</annotation></semantics></math>
+(véase Figura <a href="#fig:TychonoffSearch" data-reference-type="ref"
+data-reference="fig:TychonoffSearch">1.1</a>). Por tanto, los valores
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>θ</mi><mi>δ</mi><mi>γ</mi></msubsup><annotation encoding="application/x-tex">\theta_\delta^\gamma</annotation></semantics></math>
+cumplen que:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><msup><mi>θ</mi><mo>*</mo></msup><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><mo>≤</mo><munder><mo>liminf</mo><mrow><mi>δ</mi><mo>→</mo><mi>∞</mi></mrow></munder><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><msubsup><mi>θ</mi><mi>δ</mi><mi>γ</mi></msubsup><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow></mrow><annotation encoding="application/x-tex">\label{eq:tychoniff1}
+        ||\theta^*|| \leq \liminf_{\delta \to \infty} ||\theta_\delta^\gamma||</annotation></semantics></math>
+Por otra parte, tomando el cuadrado de las normas y agregando el factor
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mfrac><msup><mi>δ</mi><mn>2</mn></msup><mi>γ</mi></mfrac><annotation encoding="application/x-tex">\frac{\delta^2}{\gamma}</annotation></semantics></math>
+obtenemos que:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munder><mo>limsup</mo><mrow><mi>δ</mi><mo>→</mo><mn>0</mn></mrow></munder><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><msubsup><mi>θ</mi><mi>δ</mi><mi>γ</mi></msubsup><msup><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><mn>2</mn></msup><mo>≤</mo><munder><mo>lim</mo><mrow><mi>δ</mi><mo>→</mo><mn>0</mn></mrow></munder><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">(</mo><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><msup><mi>θ</mi><mo>*</mo></msup><msup><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><mn>2</mn></msup><mo>+</mo><mfrac><msup><mi>δ</mi><mn>2</mn></msup><mi>γ</mi></mfrac><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\limsup_{\delta\to 0} ||\theta_\delta^\gamma||^2 \leq \lim_{\delta\to 0}\Big( ||\theta^*||^2 + \frac{\delta^2}{\gamma} \Big)</annotation></semantics></math>
+Pero por la hipótesis del teorema tenemos que el
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>lim</mo><mrow><mi>δ</mi><mo>→</mo><mn>0</mn></mrow></msub><mfrac><msup><mi>δ</mi><mn>2</mn></msup><mi>γ</mi></mfrac><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\lim_{\delta\to 0} \frac{\delta^2}{\gamma} = 0</annotation></semantics></math>;
+por lo que podemos concluir que:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munder><mo>limsup</mo><mrow><mi>δ</mi><mo>→</mo><mn>0</mn></mrow></munder><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><msubsup><mi>θ</mi><mi>δ</mi><mi>γ</mi></msubsup><msup><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><mn>2</mn></msup><mo>≤</mo><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><msup><mi>θ</mi><mo>*</mo></msup><msup><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">\label{eq:tychoniff2}
+    \limsup_{\delta\to 0} ||\theta_\delta^\gamma||^2 \leq ||\theta^*||^2</annotation></semantics></math>
+Podemos concluir de las Ecuaciones <a href="#eq:tychoniff1"
+data-reference-type="ref"
+data-reference="eq:tychoniff1">[eq:tychoniff1]</a> y <a
+href="#eq:tychoniff2" data-reference-type="ref"
+data-reference="eq:tychoniff2">[eq:tychoniff2]</a> la siguiente
+igualdad:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munder><mo>lim</mo><mrow><mi>δ</mi><mo>→</mo><mn>0</mn></mrow></munder><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><msubsup><mi>θ</mi><mi>δ</mi><mi>γ</mi></msubsup><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><msup><mi>θ</mi><mo>*</mo></msup><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow></mrow><annotation encoding="application/x-tex">\lim_{\delta\to 0} ||\theta_\delta^\gamma|| = ||\theta^*||</annotation></semantics></math>
+Más aún, dado que hemos asumido un espacio de Hilbert, tenemos que la
+convergencia en norma implica la convergencia fuerte, por lo que
+tendremos que:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><msubsup><mi>θ</mi><mi>δ</mi><mi>γ</mi></msubsup><mo>−</mo><msup><mi>θ</mi><mo>*</mo></msup><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><mo>→</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">||\theta_\delta^\gamma - \theta^*|| \to 0</annotation></semantics></math>
+Lo que muestra que los parámetros de la función de riesgo con
+regularización convergen a la solución óptima. ◻</p>
+</div>
+<p>Retomamos algunos puntos del teorema anterior; en primer lugar, el
+teorema nos asegura que la función de riesgo con regularización obtiene
+los parámetros que minimizan la función de riesgo. Por tanto, podemos
+encontrar la red neuronal adecuada usando
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>R</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{R}</annotation></semantics></math>
+en lugar de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>R</mi><annotation encoding="application/x-tex">R</annotation></semantics></math>.
+Si nos fijamos en las condiciones del teorema, la condición de ser
+espacio de Hilbert se cumple de forma trivial, pues los pesos de una red
+neuronal son elementos de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>ℝ</mi><mi>m</mi></msup><annotation encoding="application/x-tex">\mathbb{R}^m</annotation></semantics></math>
+(o isomorfos) que son espacios de Hilbert bajo las normas comunes.</p>
+<figure id="fig:TychonoffSearch">
+<img src="images/Tychinigg.png" />
+<figcaption>Regiones de búsqueda de la función de riesgo con
+regularización
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mn>2</mn></msub><annotation encoding="application/x-tex">L_2</annotation></semantics></math></figcaption>
+</figure>
+<p>El hiperparámetro
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>
+tiene algunas consideraciones en su elección; generalmente se elige un
+valor pequeño, menor a 1. Algunos valores comunes son 0.1, 0.01. etc.
+Sin embargo, un parámetro muy pequeño no será capaz de eliminar el
+sobre-ajuste, mientras que un valor muy grande puede llevar a
+sub-ajustes.</p>
+<p>Finalmente, en el teorema hemos asumido que la función
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Ω</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\Omega(\theta)</annotation></semantics></math>
+es la norma del espacio. Esta es una buena elección, pues las normas
+cumplen con todas las propiedades que estamos pidiendo para este
+regularizador. Además, al tomar las normas como las funciones de
+regularización, observamos que este método de regularización se basa en
+limitar la búsqueda a una región del espacio acotada por la norma.
+Podemos observar que al elegir alguna norma como regularizador, la
+función
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>R</mi><mo accent="true">̂</mo></mover><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\hat{R}(\theta)</annotation></semantics></math>
+nunca será igual a 0, pues de otra forma
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Ω</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\Omega(\theta) = 0</annotation></semantics></math>,
+lo que implicaría que todos los pesos de la red son 0, por lo que
+nuestra red será una función constante nula, y si esto pasa la función
+de riesgo original
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">R(\theta)</annotation></semantics></math>
+no puede ser 0.</p>
+<p>En la Figura <a href="#fig:TychonoffSearch" data-reference-type="ref"
+data-reference="fig:TychonoffSearch">1.1</a> se puede ver de manera
+intuitiva cómo funciona el método de regularización. Bajo la norma usual
+(euclidiana) las regiones de búsqueda corresponde a discos. Por tanto,
+el factor de regularización buscará que la región de búsqueda sea lo más
+pequeña posible, pero la función de riesgo
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">R(\theta)</annotation></semantics></math>
+evitará que la región sea más pequeña que la región óptima.</p>
+<p>Esto evitará el sobre-ajuste en tanto que el factor de regularización
+impedirá que los parámetros se alejen demasiado, cayendo en regiones
+donde se consigan mínimos sobre los datos de entrenamiento. Este tipo de
+regularización es útil cuando tenemos pocos datos aplicando una red
+neuronal profunda. En la Figura <a href="#fig:RegularizationFit"
+data-reference-type="ref" data-reference="fig:RegularizationFit">1.2</a>
+podemos ver cómo una red profunda para regresión se ajusta a los datos a
+partir de una muestra pequeña en el aprendizaje. Como se observa, la
+función sin regularización es más compleja, pues busca adaptarse mejor a
+los pocos datos que observa en el entrenamiento (sobre-ajuste), mientras
+que al introducir regularización evitamos este sobre-ajuste y la función
+aprendida representa mejor a los datos de generalización.</p>
+<p>Finalmente, de manera concreta, definimos los tipos de
+regularizaciones específicas que caen dentro de lo que hemos llamado
+regularización de Tychonoff. La primera de ellas, y la más obvia, es la
+regularización con una norma euclidiana, llamada regularización
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mn>2</mn></msub><annotation encoding="application/x-tex">L_2</annotation></semantics></math>:</p>
+<div id="def:L2Reg" class="mydef">
+<p><strong>Definición 1.2</strong> (Regularización
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mn>2</mn></msub><annotation encoding="application/x-tex">L_2</annotation></semantics></math>).
+<em>La regularización
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mn>2</mn></msub><annotation encoding="application/x-tex">L_2</annotation></semantics></math>
+es un método de regularización, cuya función de riesgo se determina
+como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>R</mi><mo accent="true">̂</mo></mover><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mi>γ</mi><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><mi>θ</mi><msubsup><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><mn>2</mn><mn>2</mn></msubsup></mrow><annotation encoding="application/x-tex">\hat{R}(\theta) = R(\theta) + \gamma ||\theta||_2^2</annotation></semantics></math></em></p>
+</div>
+<p>En este caso, cabe mencionar que la norma corresponde a la función:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><msub><mi>θ</mi><mi>k</mi></msub><msubsup><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><mn>2</mn><mn>2</mn></msubsup><mo>=</mo><msub><mo>∑</mo><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><msubsup><mi>W</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msubsup><msup><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">||\theta_k||_2^2 = \sum_{i,j} \big(W_{i,j}^{(k)}\big)^2</annotation></semantics></math>
+para todas las capas ocultas
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo>,</mo><mi>.</mi><mi>.</mi><mi>.</mi><mo>,</mo><mi>K</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">k \in \{1,...,K\}</annotation></semantics></math>.
+Por lo que es fácil observar que las derivadas sobre estas capas son de
+la forma:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mrow><mi>∂</mi><mover><mi>R</mi><mo accent="true">̂</mo></mover><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mi>∂</mi><msubsup><mi>W</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow><mi>k</mi></msubsup></mrow></mfrac><mo>=</mo><mfrac><mrow><mi>∂</mi><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mi>∂</mi><msubsup><mi>W</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow><mi>k</mi></msubsup></mrow></mfrac><mo>+</mo><mn>2</mn><mi>γ</mi><msubsup><mi>W</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msubsup></mrow><annotation encoding="application/x-tex">\frac{\partial \hat{R}(\theta)}{\partial W_{i,j}^k} = \frac{\partial R(\theta)}{\partial W_{i,j}^k} + 2\gamma W_{i,j}^{(k)}</annotation></semantics></math>
+Por lo que la integración de estas derivadas al algoritmo de
+backpropagation consistirá únicamente en sumar el último factor a las
+derivadas que ya obtiene el algoritmo.</p>
+<figure id="fig:RegularizationFit">
+<figure>
+<img src="images/NoReg.png" />
+</figure>
+<figure>
+<img src="images/Reg.png" />
+</figure>
+<figcaption>Ajuste de un método de regresión con y sin
+regularización</figcaption>
+</figure>
+<p>Además de la regularización
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mn>2</mn></msub><annotation encoding="application/x-tex">L_2</annotation></semantics></math>,
+es común utilizar la regularización
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mn>1</mn></msub><annotation encoding="application/x-tex">L_1</annotation></semantics></math>
+que se basa en una norma definida a partir del valor absoluto como
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><msub><mi>θ</mi><mi>k</mi></msub><msub><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><mn>1</mn></msub><mo>=</mo><msub><mo>∑</mo><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub><mrow><mo stretchy="true" form="prefix">|</mo><msubsup><mi>W</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msubsup><mo stretchy="true" form="postfix">|</mo></mrow></mrow><annotation encoding="application/x-tex">||\theta_k||_1 = \sum_{i,j} |W_{i,j}^{(k)}|</annotation></semantics></math>.</p>
+<div class="mydef">
+<p><strong>Definición 1.3</strong> (Regularización
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mn>1</mn></msub><annotation encoding="application/x-tex">L_1</annotation></semantics></math>).
+<em>La regularización
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mn>1</mn></msub><annotation encoding="application/x-tex">L_1</annotation></semantics></math>
+está determinada por la siguiente función de riesgo:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>R</mi><mo accent="true">̂</mo></mover><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mi>γ</mi><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><mi>θ</mi><msub><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">\hat{R}(\theta) = R(\theta) + \gamma ||\theta||_1</annotation></semantics></math></em></p>
+</div>
+<p>Dentro del área de topología, se sabe que las topologías determinadas
+por las normas
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mn>1</mn></msub><annotation encoding="application/x-tex">L_1</annotation></semantics></math>
+y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mn>2</mn></msub><annotation encoding="application/x-tex">L_2</annotation></semantics></math>
+son equivalentes; esto nos garantiza que lo dicho sobre la norma
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mn>2</mn></msub><annotation encoding="application/x-tex">L_2</annotation></semantics></math>
+se aplica de igual forma sobre la norma
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mn>1</mn></msub><annotation encoding="application/x-tex">L_1</annotation></semantics></math>.
+Lo único que cambia es la forma de los discos, pues en la norma
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mn>1</mn></msub><annotation encoding="application/x-tex">L_1</annotation></semantics></math>
+estos se ven como rombos.<a href="#fn1" class="footnote-ref" id="fnref1"
+role="doc-noteref"><sup>1</sup></a> Más aún sabemos que toda norma de la
+forma
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><mi>θ</mi><msubsup><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><mi>p</mi><mi>p</mi></msubsup><mo>=</mo><msub><mo>∑</mo><mi>i</mi></msub><msubsup><mi>θ</mi><mi>i</mi><mi>p</mi></msubsup></mrow><annotation encoding="application/x-tex">||\theta||_p^p = \sum_i \theta_i^p</annotation></semantics></math>
+define una topología equivalente a la
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mn>2</mn></msub><annotation encoding="application/x-tex">L_2</annotation></semantics></math>.
+A estas normas se les suele llamar
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mi>p</mi></msub><annotation encoding="application/x-tex">L_p</annotation></semantics></math>,
+aunque no son usualmente usadas como regularizadores.</p>
+<p>El último método de regularización que observamos combina ambos
+métodos previos:</p>
+<div class="mydef">
+<p><strong>Definición 1.4</strong> (Regularización Elastic Net). <em>El
+método de regularización Elastic Net define una función de riesgo dada
+por la ecuación:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>R</mi><mo accent="true">̂</mo></mover><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>γ</mi><mn>1</mn></msub><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><mi>θ</mi><msub><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><mn>1</mn></msub><mo>+</mo><msub><mi>γ</mi><mn>2</mn></msub><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><mi>θ</mi><msubsup><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><mn>2</mn><mn>2</mn></msubsup></mrow><annotation encoding="application/x-tex">\hat{R}(\theta) = R(\theta) + \gamma_1 ||\theta||_1 + \gamma_2 ||\theta||^2_2</annotation></semantics></math></em></p>
+</div>
+<p>Las derivaciones en todos estos métodos son sencillas y permiten que
+el aprendizaje sobre la red neuronal se haga de manera efectiva con el
+método de backpropagation. Este tipo de regularizaciones son comunes en
+varios métodos de aprendizaje automático, y pueden aplicarse de manera
+sencilla a las redes neuronales. Pero no agotan todas las técnicas de
+regularización.</p>
+<h2 id="aumento-de-datos">Aumento de datos</h2>
+<p>Uno de los problemas que llevan al sobre-ajuste es que no se cuenta
+con una cantidad suficiente de datos. Se suele sugerir que cuando un
+modelo presenta sobre-ajuste o se reduzca la capacidad del modelo o se
+aumente el número de datos. Un mayor número de datos, generalmente,
+implica un mejor desempeño de la red neuronal. Sin embargo, los datos
+son un recurso muchas veces escaso. Para solventar la ausencia de datos
+se propone crear nuevos datos de manera sintética, por medio de lo que
+se conoce como <em>data augmentation</em>.</p>
+<div class="mydef">
+<p><strong>Definición 1.5</strong> (Aumento de datos). <em>El aumento de
+datos o <em>data augmentation</em> es el conjunto de técnicas utilizadas
+para obtener datos sintéticos a partir de un conjunto de datos
+dados.</em></p>
+</div>
+<p>Las técnicas de aumento de datos dependen del tipo de datos con el
+que se esté trabajando y buscan generar datos artificialmente que
+respondan a las mismas características que los datos del problema. Una
+forma de generar estos datos es conocer las transformaciones que se
+pueden dar en los datos con el que estamos trabajando, sin que el
+resultado se salga del espacio de los datos originales.</p>
+<p>Quizá el ejemplo más simple para hablar sobre el aumento de datos es
+el espacio de la imágenes. Sobre estas se pueden aplicar diferentes
+transformaciones cuyo resultado sigue siendo una imagen; algunos
+ejemplos son:</p>
+<ul>
+<li><p>Rotaciones: El rotar una imagen un número de grados da lugar a
+nuevas imágenes de una misma clase.</p></li>
+<li><p>Reflexiones: Hacer reflexiones o simetrías sobre las imágenes
+puede generar una nueva imagen de una misma clase, donde la imagen
+resultantes es vista como por un espejo.</p></li>
+<li><p>Traslaciones: La traslación mueve la imagen trasladando sus
+píxeles por un valor fijo. El resultado sigue siendo una imagen de una
+misma clase o que puede usarse para entrenar modelos de detección de
+objetos.</p></li>
+<li><p>Ruido aditivo: Agregar ruido a una imagen puede generar una
+imagen del mismo tipo o clase. Aunque debe controlarse la cantidad de
+ruido que se puede agregar.</p></li>
+</ul>
+<figure id="fig:DataAugIm">
+<img src="images/DataAugmentation.png" />
+<figcaption>Diferentes transformaciones sobre una imagen: introducción
+de ruido y rotación</figcaption>
+</figure>
+<p>En la Figura <a href="#fig:DataAugIm" data-reference-type="ref"
+data-reference="fig:DataAugIm">1.3</a> se puede observar del lado
+izquierdo la imagen original, en medio la imagen con ruido gaussiando y
+del lado derecho la imagen con una rotación. En el caso de señales de
+audio, por ejemplo, se puede agregar ruido para generar nuevas señales
+de forma sintética. Cuando hablamos de texto también existen diferentes
+estrategias que se pueden utilizar para generar datos sintéticos:</p>
+<ul>
+<li><p>Cambiar un sustantivo por otro en un texto puede dar un nuevo
+texto de la misma clase.</p></li>
+<li><p>Introducir ruido al eliminar ciertas palabras o
+enmascararlas.</p></li>
+<li><p>Utilizar métodos formales, como gramáticas libres de contexto,
+para generar cadenas de un lenguaje.</p></li>
+</ul>
+<p>El generar nuevos datos sintéticos implica conocer adecuadamente los
+datos originales y el tipo de problema que se está trabajando. Algunos
+problemas no responden de forma similar cuando se generan nuevos datos.
+Por ejemplo, si aplicamos una simetría a una tarea de reconocimiento
+óptico de caracteres podemos confundir ‘d’ con ‘b’ que pertenecen a dos
+clases distintas, lo que daría lugar a un mal desempeño del modelo. Por
+tanto, es importante que al utilizar técnicas de aumento de datos se
+considere el tipo de resultados que estamos obteniendo y si estos son
+convenientes para la tarea a resolver.</p>
+<h2 id="sec:noise">Robustecimiento por ruido</h2>
+<p>Como mencionamos en la sección anterior, el añadir ruido a los datos
+de entrada puede verse como una forma de aumentar los datos en el
+sentido de que estamos generando datos similares a los datos originales
+pero que muestran cierta alteración, generalmente pequeña, determinada
+por el tipo de ruido que introducimos. Por ejemplo, si
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>∈</mo><msup><mi>ℝ</mi><mi>d</mi></msup></mrow><annotation encoding="application/x-tex">x \in \mathbb{R}^d</annotation></semantics></math>
+es un dato de la clase
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>,
+podemos generar un dato sintético de esta clase como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>x</mi><mo accent="true">̂</mo></mover><mo>=</mo><mi>x</mi><mo>+</mo><mi>β</mi><mi>N</mi></mrow><annotation encoding="application/x-tex">\hat{x} = x + \beta N</annotation></semantics></math>
+Donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>∼</mo><mi>𝒩</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>μ</mi><mo>,</mo><mi>σ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">N\sim \mathcal{N}(\mu, \sigma)</annotation></semantics></math>
+es ruido gaussiando (con media
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>
+y varianza
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>σ</mi><mn>2</mn></msup><annotation encoding="application/x-tex">\sigma^2</annotation></semantics></math>)
+y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi><mo>∈</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">\beta\in \mathbb{R}</annotation></semantics></math>
+es un hiperparámetro, generalmente pequeño, que indica qué tanto ruido
+le agregamos al dato nuevo. En la Figura <a href="#fig:noiseData"
+data-reference-type="ref" data-reference="fig:noiseData">1.4</a> se
+puede observar esta estrategia aplicada a un conjunto de datos pequeño
+(100 puntos) dentro de una tarea de clasificación binaria. Del lado
+derecho se ve la generación de diez mil datos nuevos a partir de añadir
+ruido gaussiano. Lo que se observa es que los datos con ruido están en
+las cercanías de su clase, por lo que, en este caso, al utilizar un
+clasificador como el perceptrón, el introducir ruido puede mejorar las
+fronteras de decisión.</p>
+<figure id="fig:noiseData">
+<img src="images/noiseData.png" />
+<figcaption>Generación de datos sintéticos a partir de
+ruido</figcaption>
+</figure>
+<p>El robustecimiento por ruido lleva la introducción del ruido más allá
+de los datos de entrada. Recordemos que en el caso de las redes
+neuronales profundas, lo que se aprende en las capas ocultas son
+representaciones de los datos. Por tanto, podemos regularizar el
+aprendizaje inyectando ruido a las capas ocultas y no sólo a los datos
+de entrada.</p>
+<div class="mydef">
+<p><strong>Definición 1.6</strong> (Robustecimiento por ruido de capas
+ocultas). <em>Dada una red neuronal profunda
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>:</mo><mi>X</mi><mo>→</mo><mi>Y</mi></mrow><annotation encoding="application/x-tex">f: X \to Y</annotation></semantics></math>
+con capas ocultas
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><annotation encoding="application/x-tex">h^{(k)}</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo>,</mo><mn>2</mn><mo>,</mo><mi>.</mi><mi>.</mi><mi>.</mi><mo>,</mo><mi>K</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">k \in \{1,2,...,K\}</annotation></semantics></math>,
+el robustecimiento por ruido consiste en añadir ruido
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>∼</mo><mi>𝒩</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mi>σ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">N \sim \mathcal{N}(0,\sigma)</annotation></semantics></math>
+a las capas ocultas:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mover><mi>h</mi><mo accent="true">̂</mo></mover><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>=</mo><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>+</mo><mi>β</mi><mi>N</mi></mrow><annotation encoding="application/x-tex">\hat{h}^{(k)} = h^{(k)} + \beta N</annotation></semantics></math>
+donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi><mo>∈</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">\beta \in \mathbb{R}</annotation></semantics></math>
+es un hiperparámetro que controla la influencia del ruido.</em></p>
+</div>
+<p>Esta inyección de ruido en las capas ocultas puede hacerse en algunas
+o en todas las capas, asimismo puede realizarse de forma estocástica. De
+tal forma, las capas de la red serán de la forma:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mi>g</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><msup><mi>W</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><msup><mover><mi>h</mi><mo accent="true">̂</mo></mover><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo>−</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>+</mo><msup><mi>b</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mi>g</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><msup><mi>W</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo>−</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>+</mo><mi>β</mi><mi>N</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msup><mi>b</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mi>g</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><msup><mi>W</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo>−</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>+</mo><mi>β</mi><msup><mi>W</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><mi>N</mi><mo>+</mo><msup><mi>b</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+    h^{(k)} &amp;= g\big(W^{(k)} \hat{h}^{(k-1)} + b^{(k)}  \big) \\
+    &amp;= g\big(W^{(k)} (h^{(k-1)} + \beta N) + b^{(k)}  \big) \\
+    &amp;= g\big(W^{(k)} h^{(k-1)} + \beta W^{(k)} N + b^{(k)}  \big)
+\end{aligned}</annotation></semantics></math> Los pesos que se aprenden
+en la red también se ven influenciado por el ruido de las capas ocultas;
+esta influencia se controla por el hiperparámetro
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>.
+Esto permite que, en cada caso, la red observe una representación
+‘nueva’, evitando que se presente un sobreajuste.</p>
+<p>La regularización agregando ruido puede ir todavía más allá al
+incorporar no sólo el ruido a los datos y las representaciones de estos,
+si no también se puede añadir a los pesos de la red.</p>
+<div class="mydef">
+<p><strong>Definición 1.7</strong> (Robustecimiento por ruido de los
+pesos). <em>Sea
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>:</mo><mi>X</mi><mo>→</mo><mi>Y</mi></mrow><annotation encoding="application/x-tex">f:X \to Y</annotation></semantics></math>
+una red neuronal con pesos
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi><mo>=</mo><mo stretchy="false" form="prefix">{</mo><msup><mi>W</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>,</mo><msup><mi>b</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>:</mo><mi>k</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>.</mi><mi>.</mi><mi>.</mi><mo>,</mo><mi>K</mi><mo>,</mo><mi>K</mi><mo>+</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\theta = \{W^{(k)}, b^{(k)} : k =1,...,K,K+1\}</annotation></semantics></math>.
+El robustecimiento por ruido sobre los pesos es una técnica de
+regularización que añade ruido ruido
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>∼</mo><mi>𝒩</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mi>σ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">N \sim \mathcal{N}(0,\sigma)</annotation></semantics></math>
+a estos:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>θ</mi><mo accent="true">̂</mo></mover><mo>=</mo><mi>θ</mi><mo>+</mo><mi>β</mi><mi>N</mi></mrow><annotation encoding="application/x-tex">\hat{\theta} = \theta + \beta N</annotation></semantics></math>
+donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi><mo>∈</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">\beta \in \mathbb{R}</annotation></semantics></math>
+es un hiperparámetro que controla la influencia del ruido.</em></p>
+</div>
+<p>Este ruido puede añadirse a algunas de las capas o a todas. Este
+ruido tiene efecto en las representaciones y, por tanto, también en la
+forma en que se aprenden los pesos. Se puede observar que:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mi>g</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><msup><mover><mi>W</mi><mo accent="true">̂</mo></mover><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo>−</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>+</mo><msup><mi>b</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mi>g</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>W</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>+</mo><mi>β</mi><mi>N</mi><mo stretchy="true" form="postfix">)</mo></mrow><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo>−</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>+</mo><msup><mi>b</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mi>g</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><msup><mi>W</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo>−</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>+</mo><mi>β</mi><mi>N</mi><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo>−</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>+</mo><msup><mi>b</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+    h^{(k)} &amp;= g\big(  \hat{W}^{(k)} h^{(k-1)} + b^{(k)} \big) \\ 
+          &amp;= g\big(  (W^{(k)} + \beta N) h^{(k-1)} + b^{(k)} \big) \\
+          &amp;= g\big(  W^{(k)} h^{(k-1)} + \beta N h^{(k-1)} + b^{(k)} \big) \label{eq:noiserRob}
+\end{aligned}</annotation></semantics></math> El ruido añade un factor
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi><mi>N</mi><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo>−</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup></mrow><annotation encoding="application/x-tex">\beta N h^{(k-1)}</annotation></semantics></math>
+controlado por
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>
+que modifica la representación
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><annotation encoding="application/x-tex">h^{(k)}</annotation></semantics></math>.
+Este factor modifica la forma en que se aprenden los pesos</p>
+<div class="prop">
+<p><strong>Proposición 1.1</strong>. <em>Supóngase que se tiene una red
+neuronal y un problema donde se ha tomado como función objetivo el error
+cuadrático medio. Entonces el robustecimiento por ruido cumple que:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><mover><mi>θ</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow><mo>→</mo><mi>𝔼</mi><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">[</mo><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>;</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>y</mi><msup><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo><mn>2</mn></msup><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">]</mo><mo>+</mo><mi>β</mi><mi>𝔼</mi><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">[</mo><msubsup><mi>∇</mi><mi>θ</mi><mn>2</mn></msubsup><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">R(\hat{\theta}) \to \mathbb{E}\Big[   \big(f(x; \theta) -  y\big)^2 \Big] + \beta \mathbb{E}\Big[ \nabla_\theta^2 R(\theta) \Big]</annotation></semantics></math>
+Cuando
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>σ</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>,
+la desviación estándar del ruido, tiende a 0.</em></p>
+</div>
+<div class="proof">
+<p><em>Proof.</em> Tomemos una red neuronal
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>:</mo><mi>X</mi><mo>→</mo><mi>Y</mi></mrow><annotation encoding="application/x-tex">f:X \to Y</annotation></semantics></math>
+con pesos
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
+y supongamos que la función de riesgo es el error cuadrático medio:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>𝔼</mi><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">[</mo><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>;</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>y</mi><msup><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo><mn>2</mn></msup><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">R(\theta) = \mathbb{E}\Big[  \big( f(x; \theta) -  y \big)^2 \Big]</annotation></semantics></math></p>
+<p>Asúmase que el ruido que se agrega tiene una distribución normal con
+media 0 y desviación estándar
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>σ</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>,
+esto es
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>∼</mo><mi>𝒩</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mi>σ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">N \sim \mathcal{N}(0, \sigma)</annotation></semantics></math>,
+por lo que tenemos que:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>θ</mi><mo accent="true">̂</mo></mover><mo>=</mo><mi>θ</mi><mo>+</mo><mi>β</mi><mi>N</mi></mrow><annotation encoding="application/x-tex">\hat{\theta}  = \theta + \beta N</annotation></semantics></math>
+Desarrollando la función objetiva del error cuadrático bajo el regimen
+de robustecimiento por ruido tenemos que:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><mover><mi>θ</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mi>𝔼</mi><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">[</mo><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>;</mo><mover><mi>θ</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>y</mi><msup><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo><mn>2</mn></msup><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">]</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mi>𝔼</mi><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">[</mo><mi>f</mi><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>;</mo><mover><mi>θ</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mo>−</mo><mn>2</mn><mi>y</mi><mi>f</mi><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>;</mo><mover><mi>θ</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mo>+</mo><msup><mi>y</mi><mn>2</mn></msup><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">]</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mi>𝔼</mi><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">[</mo><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>;</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>y</mi><msup><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo><mn>2</mn></msup><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">]</mo><mo>+</mo><mi>β</mi><mi>N</mi><mi>𝔼</mi><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">[</mo><mn>2</mn><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>;</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>y</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo><mi>x</mi><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">]</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mi>𝔼</mi><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">[</mo><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>;</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>y</mi><msup><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo><mn>2</mn></msup><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">]</mo><mo>+</mo><mi>β</mi><mi>N</mi><mi>𝔼</mi><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">[</mo><msub><mi>∇</mi><mi>θ</mi></msub><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">]</mo></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+    R(\hat{\theta}) &amp;= \mathbb{E}\Big[  \big(f(x; \hat{\theta}) -  y \big)^2 \Big] \\
+                    &amp;= \mathbb{E}\Big[  f(x; \hat{\theta})^2 -  2yf(x; \hat{\theta})^2 + y^2 \Big] \\
+                    &amp;= \mathbb{E}\Big[  \big(f(x; {\theta}) -y\big)^2 \Big] +  \beta N \mathbb{E} \Big[ 2 \big( f(x; {\theta}) - y \big) x \Big] \\
+                    &amp;= \mathbb{E}\Big[  \big(f(x; {\theta}) -y\big)^2 \Big] +  \beta N \mathbb{E} \Big[ \nabla_\theta R(\theta) \Big]
+\end{aligned}</annotation></semantics></math> Esta última igualdad surge
+de desarrollar la ecuación con base en <a href="#eq:noiserRob"
+data-reference-type="ref"
+data-reference="eq:noiserRob">[eq:noiserRob]</a> y agrupar juntos los
+términos con y sin ruido. Entonces, haciendo tender la desviación
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>σ</mi><annotation encoding="application/x-tex">\sigma</annotation></semantics></math>
+a 0 obtenemos el resultado:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><mover><mi>θ</mi><mo accent="true">̂</mo></mover><mo stretchy="true" form="postfix">)</mo></mrow><mo>→</mo><mi>𝔼</mi><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">[</mo><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>;</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>y</mi><msup><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo><mn>2</mn></msup><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">]</mo><mo>+</mo><mi>β</mi><mi>𝔼</mi><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">[</mo><msubsup><mi>∇</mi><mi>θ</mi><mn>2</mn></msubsup><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">R(\hat{\theta}) \to \mathbb{E}\Big[  \big(f(x; \theta) -  y\big)^2 \Big] + \beta \mathbb{E}\Big[ \nabla^2_\theta R(\theta) \Big]</annotation></semantics></math> ◻</p>
+</div>
+<p>El resultado anterior nos deja ver que el robustecimiento por ruido
+sobre los pesos tiene un efector similar a la regularización
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mn>2</mn></msub><annotation encoding="application/x-tex">L_2</annotation></semantics></math>,
+limitando las regiones de búsqueda sobre un espacio acotado, controlando
+está búsqueda por medio del hiperparámetro
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>.
+De tal forma, que introducir ruido con mayor valor de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>
+llevará a una influencia mayor del factor del gradiente cuadrado en la
+función de riesgo. De forma inversa, un valor pequeño de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>
+llevará a una influencia menor.</p>
+<p>Hemos revisado la introducción de ruido en diferentes secciones de la
+red: los datos de entrada, las capas y los pesos. Otra estrategia de
+introducción de ruido se puede dar al agregarlo a la salida de la red;
+es decir, en las predicciones. A este tipo de estrategia se le conoce
+como suavicamiento de clases o <em>label smoothing</em>. Su efecto es
+que, al introducir ruido en una probabilidad de salida, los datos de
+entrada podrán ser asociados con una probabilidad distinta en cada época
+a una clase.</p>
+<h2 id="aprendizaje-multitarea">Aprendizaje multitarea</h2>
+<p>En el <em>label smoothing</em> se modifican los valores de salida de
+la red con ruido para que ésta reduzca la ‘memorización’ de las
+decisiones que toma con respecto a un dato de entrada. En general, una
+forma de reducir el sobre-ajuste es evitar que la red neuronal se
+especialice en una tarea específica al grado de memorizarla. Para esto,
+se propone que la red se enfoque en otras tareas sobre el mismo tipo de
+datos, pero que sean distintas.</p>
+<div class="mydef">
+<p><strong>Definición 1.8</strong> (Aprendizaje multitarea). <em>El
+aprendizaje multitarea o <em>multitask learning</em> consiste en
+entrenar una representación
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+profunda en diferentes tareas. Para esto, se definen dos módulos de una
+red:</em></p>
+<ul>
+<li><p><em>Capas compartidas: son aquellas capas profundas
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><annotation encoding="application/x-tex">h^{(k)}</annotation></semantics></math>
+que resultan en la representación
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+y que se utilizan en todas las tareas. Suelen ser las capas más cercanas
+a la entrada y se entrenan como parte de todas las tareas.</em></p></li>
+<li><p><em>Capas específicas a la tarea: son las capas ocultas de una
+red que se enfocan a una tarea específica, y que son disjuntas a las
+capas específicas de otras tareas. El entrenamiento aquí se da sólo en
+una tarea específica.</em></p></li>
+</ul>
+</div>
+<p>Se puede decir que las capas específicas a la tarea toman como
+entrada la representación
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+de las capas compartidas. De esta forma, la representación
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+se pueda pensar como una representación ‘general’ que evite
+sobre-ajustar sobre una sola tarea, incorporando un conocimiento sobre
+otros aspectos de los datos.</p>
+<p>En el aprendizaje multitrea, por tanto necesitamos que el conjunto de
+datos tenga varias respuestas posibles. Por ejemplo, si se cuenta con
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>
+tareas distintas, cada una debe contar con una supervisión
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Y</mi><mi>i</mi></msub><annotation encoding="application/x-tex">Y_i</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo>,</mo><mn>2</mn><mo>,</mo><mi>.</mi><mi>.</mi><mi>.</mi><mo>,</mo><mi>m</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">i \in\{1,2,...,m\}</annotation></semantics></math>.
+En este sentido, se puede pensar que se cuenta con
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>
+conjuntos de datos distintos, pero donde los ejemplos
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>∈</mo><mi>X</mi></mrow><annotation encoding="application/x-tex">x \in X</annotation></semantics></math>
+se comparten. A partir de esto, se pueden definir
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>
+salidas, cada una para una tarea distinta; estas salidas pueden estar
+precedidas por capas ocultas especializadas. En cada una de estas tareas
+se debe tomar a la representación general
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>,
+la cual puede producirse también con varias capas ocultas previas.</p>
+<figure id="fig:multitask">
+<img src="images/MultiTask.png" />
+<figcaption>Esquema del aprendizaje multitarea</figcaption>
+</figure>
+<p>En la FIgura <a href="#fig:multitask" data-reference-type="ref"
+data-reference="fig:multitask">1.5</a> se muestra un esquema de una red
+profunda para aprendizaje multitarea. Primero los datos pasan por un
+conjunto de capas ocultas hasta conformar una representación general.
+Posteriormente, esta representación pasa a capas de tareas específicas
+para obtener una salida por cada problema. Esto generará
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>
+redes
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mn>1</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><mi>.</mi><mi>.</mi><mi>.</mi><mo>,</mo><msub><mi>f</mi><mi>m</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f_1(x), ..., f_m(x)</annotation></semantics></math>
+que tienen un conjunto de capas compartidas. Entre estas tareas puede
+estar la tarea objetivo, de tal forma que, al generalizar el
+conocimiento en otras tareas, el aprendizaje en la tarea objetivo se
+puede ver enriquecido, evitando el sobre-ajuste.</p>
+<p>Existen otras estrategias que caen dentro de lo que se conoce como
+transferencia de conocimiento o <em>transfer learning</em>. En estas
+estrategias se utiliza el conocimiento de tareas generales para resolver
+problemas específicos. Por ejemplo, si se tienen muchos datos
+supervisados para una tarea general, se puede entrenar una red en esa
+tarea y después utilizar lo aprendido en una tarea específica. Por
+ejemplo, en el lenguaje natural se suele entrenar redes en tareas como
+predicción de la siguiente palabra (una tarea auto-supervisada, por lo
+que se puede aprender con texto plano). Posteriormente, lo aprendido se
+puede utilizar para tareas específicas en la misma lengua, como
+clasificación de spam, detección de sentimiento, agrupamiento de
+documentos, etc. En estos casos, se puede usar toda o parte de la red
+original. Por ejemplo, en el lenguaje natural se suelen usar
+representaciones de las palabras.</p>
+<p>Asimismo, se puede entrenar una red en una tarea general y
+posteriormente usar ese conocimiento, los pesos aprendidos, para
+ajustarla a una tarea específica. En este caso, los pesos de la red
+original se modifican en el entrenamiento sobre el problema específico,
+como si los pesos se inicializaran con el conocimiento previo de la
+tarea general. A este tipo de procedimiento se le conoce como ajuste
+fino o <em>fine tuning</em>.</p>
+<h2 id="early-stopping">Early stopping</h2>
+<p>En el sobreajuste existe una tendencia en donde el error en el
+entrenamiento disminuye, pero el error en la evaluación aumenta. Esto no
+pasa durante todas las épocas, pues puede suceder que el error de
+evaluación y el de entrenamiento comiencen a disminuir hasta un punto en
+que se separan. Podemos pensar que el momento en que el error de
+evaluación comienza a crecer, aunque el error de entrenamiento siga
+disminuyendo, es un punto óptimo para detener el proceso de
+entrenamiento. En la Figura <a href="#fig:overfitCurves"
+data-reference-type="ref" data-reference="fig:overfitCurves">1.6</a> se
+muestra gráficamente esta idea: la curva de entrenamiento continua
+disminuyendo, mientras el error de evaluación comienza a crecer. El
+valor óptimo se alcanza antes que el modelo termine de entrenar, por lo
+que se buscaría detener éste en ese punto.</p>
+<figure id="fig:overfitCurves">
+<img src="images/overfitCurves.png" />
+<figcaption>Distanciamiento de las curvas de entrenamiento y evaluación
+que se da en el sobreajuste</figcaption>
+</figure>
+<p>Para poder detener el algoritmo en un momento óptimo se ha propuesto
+el método de <em>early stopping</em> <span class="citation"
+data-cites="raskutti2014early"></span>. Este método propone observar un
+error de generalización durante el entrenamiento. Para esto se utiliza
+un conjunto de datos de validación. Se trata de un subconjunto de los
+datos, generalmente pequeño (alrededor del 10% de los datos) el cual se
+integra en las épocas de entrenamiento para evaluar por cada época la
+capacidad de generalización del modelo y determinar que tanto el error
+de entrenamiento y el de evaluación se alejan. Los pesos de cada época
+se almacenan y se elije el conjunto de pesos que reduzcan el error de
+validación. El algoritmo de <em>early stopping</em> se muestra a
+continuación.</p>
+
+<img src="images/AlgoritmoEarlyStop.png" />
+
+<!--
+<div class="algorithmic">
+<p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
+número de pasos entre evaluaciones.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>
+‘paciencia’ del modelo.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi><mo>←</mo></mrow><annotation encoding="application/x-tex">\theta \leftarrow</annotation></semantics></math>
+<span
+class="smallcaps">Random</span>(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>)
+Inicialización de pesos
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi><mo>,</mo><mi>j</mi><mo>,</mo><mi>e</mi><mi>r</mi><mi>r</mi><mo>←</mo><mn>0</mn><mo>,</mo><mn>0</mn><mo>,</mo><mi>∞</mi></mrow><annotation encoding="application/x-tex">i,j,err \leftarrow 0,0,\infty</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>θ</mi><mo>*</mo></msup><mo>←</mo><mi>θ</mi></mrow><annotation encoding="application/x-tex">\theta^* \leftarrow \theta</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>i</mi><mo>*</mo></msup><mo>←</mo><mi>i</mi></mrow><annotation encoding="application/x-tex">i^* \leftarrow i</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi><mo>←</mo></mrow><annotation encoding="application/x-tex">\theta \leftarrow</annotation></semantics></math>
+<span
+class="smallcaps">UpdateTrain</span>(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>)
+Entrenar por
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
+pasos.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi><mo>←</mo><mi>i</mi><mo>+</mo><mi>n</mi></mrow><annotation encoding="application/x-tex">i \leftarrow i+n</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>e</mi><mi>r</mi><mi>r</mi><mi>′</mi><mo>←</mo></mrow><annotation encoding="application/x-tex">err&#39; \leftarrow</annotation></semantics></math>
+<span
+class="smallcaps">ValidationRisk</span>(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>)
+Error en la validación.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>j</mi><mo>,</mo><msup><mi>i</mi><mo>*</mo></msup><mo>,</mo><mi>e</mi><mi>r</mi><mi>r</mi><mo>←</mo><mn>0</mn><mo>,</mo><mi>i</mi><mo>,</mo><mi>e</mi><mi>r</mi><mi>r</mi><mi>′</mi></mrow><annotation encoding="application/x-tex">j, i^*, err \leftarrow 0, i, err&#39;</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>θ</mi><mo>*</mo></msup><mo>←</mo><mi>θ</mi></mrow><annotation encoding="application/x-tex">\theta^* \leftarrow \theta</annotation></semantics></math>
+Guardar los pesos óptimos.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>j</mi><mo>←</mo><mi>j</mi><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">j \leftarrow j+1</annotation></semantics></math></p>
+</div>
+-->
+
+<p>El problema con el procedimiento de <em>early stopping</em> es que
+depende de un conjunto de datos de validación que, como en la
+evaluación, no es utilizado para el entrenamiento. Pero esto reduce la
+cantidad de datos de entrenamiento. Para solucionar esto, se integra el
+conjunto de datos de validación al entrenamiento. Esto se realiza
+siguiendo los siguientes paso:</p>
+<ul>
+<li><p>La variable
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>i</mi><mo>*</mo></msup><annotation encoding="application/x-tex">i^*</annotation></semantics></math>
+del algoritmo guarda el número de épocas en que se ha conseguido el
+mejor error de validación y, por tanto, el mejor conjunto de pesos. Una
+solución es guardar este número
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>i</mi><mo>*</mo></msup><annotation encoding="application/x-tex">i^*</annotation></semantics></math>
+y entrenar el modelo, integrando el conjunto de validación, por
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>i</mi><mo>*</mo></msup><annotation encoding="application/x-tex">i^*</annotation></semantics></math>
+épocas, asumiendo que este es el número de épocas en que se alcanza el
+conjunto de pesos óptimo. Por tanto, se correría el método de <em>early
+stopping</em> para obtener el valor
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>i</mi><mo>*</mo></msup><annotation encoding="application/x-tex">i^*</annotation></semantics></math>
+y, posteriormente, se volvería a entrenar un modelo por
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>i</mi><mo>*</mo></msup><annotation encoding="application/x-tex">i^*</annotation></semantics></math>
+épocas pero integrando al conjunto de datos de entrenamiento el conjunto
+de validación.</p></li>
+<li><p>Otra opción es guardar el conjunto óptimo
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>θ</mi><mo>*</mo></msup><annotation encoding="application/x-tex">\theta^*</annotation></semantics></math>
+para entrenar un modelo que integre el conjunto de datos de validación
+iniciando con los pesos
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>θ</mi><mo>*</mo></msup><annotation encoding="application/x-tex">\theta^*</annotation></semantics></math>.
+Para esto, se puede integrar el siguiente algoritmo:</p>
+
+<img src="images/AlgoritmoEAIntegrate.png" />
+
+<!--
+<div class="algorithmic">
+<p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>e</mi><mi>r</mi><mi>r</mi><mo>←</mo><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>θ</mi><mo>*</mo></msup><mo>,</mo><msup><mi>X</mi><mrow><mi>t</mi><mi>r</mi><mi>a</mi><mi>i</mi><mi>n</mi></mrow></msup><mo>,</mo><msup><mi>Y</mi><mrow><mi>t</mi><mi>r</mi><mi>a</mi><mi>i</mi><mi>n</mi></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">err \leftarrow R(\theta^*, X^{train}, Y^{train})</annotation></semantics></math>
+<span
+class="smallcaps">Train</span>(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>X</mi><mrow><mi>t</mi><mi>r</mi><mi>a</mi><mi>i</mi><mi>n</mi></mrow></msup><mo>∪</mo><msup><mi>X</mi><mrow><mi>v</mi><mi>a</mi><mi>l</mi></mrow></msup><mo>,</mo><msup><mi>Y</mi><mrow><mi>t</mi><mi>r</mi><mi>a</mi><mi>i</mi><mi>n</mi></mrow></msup><mo>∪</mo><msup><mi>Y</mi><mrow><mi>v</mi><mi>a</mi><mi>l</mi></mrow></msup></mrow><annotation encoding="application/x-tex">X^{train} \cup X^{val}, Y^{train} \cup Y^{val}</annotation></semantics></math>)</p>
+</div>
+-->
+
+</li>
+</ul>
+<p>Por tanto, el algoritmo de <em>early stopping</em> nos permite
+obtener una mejor capacidad de generalización. Este método no garantiza
+un óptimo global, pero puede ayudar a reducir el sobre-ajuste durante el
+entrenamiento, teniendo mejor resultado que un entrenamiento
+estándar.</p>
+<h2 id="métodos-por-conjuntos">Métodos por conjuntos</h2>
+<p>En el aprendizaje multi-tarea se escogían diferentes tareas para que
+puedan ser resueltas por una sola máquina de aprendizaje; esto impide
+que la máquina de aprendizaje se especialice en un solo problema,
+evitando el sobre-ajuste. En un sentido contrario, podemos tomar una
+sola tarea para que sea resuelta por varias máquinas de aprendizaje, de
+tal forma que tengamos respuestas variadas al mismo problema buscando
+una mejor generalización. A este tipo de estrategias se les conoce como
+métodos por conjuntos (<em>ensemble methods</em>).</p>
+<div class="mydef">
+<p><strong>Definición 1.9</strong> (Método por conjuntos). <em>Un método
+por conjuntos o ensambles es un método que incorpora diferentes máquinas
+de aprendizaje
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>i</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><annotation encoding="application/x-tex">f^{(i)}</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo>,</mo><mn>2</mn><mo>,</mo><mi>.</mi><mi>.</mi><mi>.</mi><mo>,</mo><mi>M</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">i \in \{1,2,...,M\}</annotation></semantics></math>
+para resolver un problema, por ejemplo, supervisado
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒮</mi><mo>=</mo><mo stretchy="false" form="prefix">{</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>:</mo><mi>x</mi><mo>∈</mo><msup><mi>ℝ</mi><mi>d</mi></msup><mo>,</mo><mi>y</mi><mo>∈</mo><mi>Y</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\mathcal{S} = \{ (x,y) : x \in \mathbb{R}^d, y \in Y\}</annotation></semantics></math>.</em></p>
+</div>
+<p>En este sentido, lo que se hace es entrenar diferentes modelos que
+provienen de diferentes máquinas de aprendizaje bajo el mismo conjunto
+de datos de entrenamiento. En particular, este tipo de métodos se puede
+aplicar a cualquier modelo de aprendizaje. Una revisión de este tipo de
+métodos se puede ver en <span class="citation"
+data-cites="mienye2022survey"></span>. En el caso del aprendizaje
+profundo, se pueden utilizar diferentes redes neuronales con diferentes
+capacidades para poder evitar una inferencia con sobre-ajuste; al contar
+con un número mayor de posibles salidas, podemos elegir la que sea
+mejor. En el tiempo de inferencia, entonces, se obtiene un conjunto de
+salidas
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>y</mi><mo accent="true">̂</mo></mover><mn>1</mn></msub><mo>,</mo><msub><mover><mi>y</mi><mo accent="true">̂</mo></mover><mn>2</mn></msub><mo>,</mo><mi>.</mi><mi>.</mi><mi>.</mi><mo>,</mo><msub><mover><mi>y</mi><mo accent="true">̂</mo></mover><mi>M</mi></msub></mrow><annotation encoding="application/x-tex">\hat{y}_1, \hat{y}_2,..., \hat{y}_M</annotation></semantics></math>,
+donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>
+es el número de máquinas de aprendizaje y cada
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>y</mi><mo accent="true">̂</mo></mover><mi>i</mi></msub><annotation encoding="application/x-tex">\hat{y}_i</annotation></semantics></math>
+es la salida correspondiente al
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>-ésimo
+modelo.</p>
+<p>El entrenamiento de este tipo de métodos consiste en ajustar los
+modelos bajo el mismo conjunto de datos. La inferencia o predicción es
+la que presenta particularidades, pues se obtienen
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>
+salidas, de las cuales se debe tomar la más adecuada, esto es, aquella
+que muestre una mejor capacidad de generalización. Para esto, se
+proponen diferentes métodos como el promedio de modelos.</p>
+<div class="mydef">
+<p><strong>Definición 1.10</strong> (Promedio de modelos). <em>Dado un
+método por conjuntos con salidas
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>y</mi><mo accent="true">̂</mo></mover><mi>i</mi></msub><annotation encoding="application/x-tex">\hat{y}_i</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo>,</mo><mn>2</mn><mi>.</mi><mi>.</mi><mi>.</mi><mo>,</mo><mi>M</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">i \in \{1,2...,M\}</annotation></semantics></math>,
+el promedio de modelos (<em>model averaging</em>) obtiene una salida en
+base al valor medio del conjunto de salidas:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>y</mi><mo accent="true">̂</mo></mover><mo>=</mo><mfrac><mn>1</mn><mi>M</mi></mfrac><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>M</mi></munderover><msub><mover><mi>y</mi><mo accent="true">̂</mo></mover><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">\hat{y} = \frac{1}{M} \sum_{i=1}^M \hat{y}_i</annotation></semantics></math></em></p>
+</div>
+<p>El promedio de modelos, como su nombre lo dice, busca únicamente de
+obtener un promedio de los resultados obtenidos entre todos los modelos;
+el uso de este tipo de predicción puede realizarse para métodos de
+regresión de manera directa, pues podemos obtener un valor real por
+medio del promedio de las salidas del conjunto de modelos. Por otra
+parte, si se desea obtener una clase necesitamos obtener un valor que se
+encuentre dentro de los valores permitidos en la salida, por lo que el
+promedio no será adecuado. En este caso, podremos obtener la máxima
+probabilidad.</p>
+<div class="mydef">
+<p><strong>Definición 1.11</strong> (Probabilidad de clase). <em>Dado un
+método por conjuntos con salidas
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>y</mi><mo accent="true">̂</mo></mover><mi>i</mi></msub><annotation encoding="application/x-tex">\hat{y}_i</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo>,</mo><mn>2</mn><mi>.</mi><mi>.</mi><mi>.</mi><mo>,</mo><mi>M</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">i \in \{1,2...,M\}</annotation></semantics></math>
+sobre un problema de clasificación, podemos obtener una salida en base a
+la probabilidad de clases como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>y</mi><mo accent="true">̂</mo></mover><mo>=</mo><mo>arg</mo><munder><mo>max</mo><mi>i</mi></munder><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">{</mo><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mover><mi>y</mi><mo accent="true">̂</mo></mover><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>:</mo><mi>i</mi><mo>=</mo><mn>1</mn><mo>,</mo><mn>2</mn><mo>,</mo><mi>.</mi><mi>.</mi><mi>.</mi><mo>,</mo><mi>M</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\hat{y} =  \arg\max_i \big\{p(\hat{y}_i): i=1,2,...,M\big\}</annotation></semantics></math>
+Donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mover><mi>y</mi><mo accent="true">̂</mo></mover><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">p(\hat{y}_i)</annotation></semantics></math>
+es una medida de probabilidad sobre las salidas.</em></p>
+</div>
+<p>La probabilidad de la clase
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mover><mi>y</mi><mo accent="true">̂</mo></mover><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">p(\hat{y}_i)</annotation></semantics></math>
+puede obtenerse a partir de la distribución sobre los diferentes
+modelos. De tal forma, si la mayoría de los modelos predijo la clase,
+por ejemplo, 1, entonces el modelo general habrá de predecir esta clase.
+Muchas veces, a los modelos que participan del método por conjunto se
+les conoce como jueces, pues su función es emitir un “voto” a favor de
+una clase; la clase final será la que cuente con un mayor número de
+votos.</p>
+<p>Una estrategia que busca minimizar el error de generalización y cae
+dentro de los métodos por conjuntos es el llamado <em>Boostrap
+Aggregation</em>, también llamados <em>bagging</em> <span
+class="citation" data-cites="breiman1996bagging"></span>. Estos métodos
+se enfocan principalmente en problemas de clasificación, buscando
+minimizar el error de generalización a partir de entrenar diferentes
+modelos sobre muestras de un mismo conjunto de datos de
+entrenamiento.</p>
+<div class="mydef">
+<p><strong>Definición 1.12</strong> (Boostrap aggregation). <em>El
+método de <em>Boostrap aggregation</em> o <em>bagging</em> es un método
+por conjuntos que, dado un conjunto de datos
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒮</mi><mo>=</mo><mo stretchy="false" form="prefix">{</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>:</mo><mi>x</mi><mo>∈</mo><msup><mi>ℝ</mi><mi>d</mi></msup><mo>,</mo><mi>y</mi><mo>∈</mo><mi>Y</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\mathcal{S} = \{ (x,y) : x \in \mathbb{R}^d, y \in Y \}</annotation></semantics></math>,
+genera
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>
+subconjuntos de datos
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝒮</mi><mn>1</mn></msub><mo>,</mo><mi>.</mi><mi>.</mi><mi>.</mi><mo>,</mo><msub><mi>𝒮</mi><mi>M</mi></msub></mrow><annotation encoding="application/x-tex">\mathcal{S}_1, ..., \mathcal{S}_M</annotation></semantics></math>
+por medio de un submuestreo uniforme y con reemplazo sobre
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒮</mi><annotation encoding="application/x-tex">\mathcal{S}</annotation></semantics></math>.</em></p>
+</div>
+<p>El <em>bagging</em>, entonces, primero realiza submuestras del
+conjunto original de datos que permiten que cada modelo se entrene de
+forma particular, buscando así una mejora en la generalización al ver
+diferentes configuraciones del conjunto de datos durante el
+entrenamiento. La idea de submuestrear los datos busca que las
+diferentes máquinas de aprendizaje generen modelos de aprendizaje
+variados. Por ejemplo, si se usan redes neuronales para una misma tarea,
+se puede asegurar la variación de éstas en base no sólo a cambiar el
+número de neuronas, sino también con respecto a la forma en que aprenden
+del conjunto de entrenamiento. Esta variación en los modelos utilizados
+por un método por conjuntos es de primordial importancia, pues asegura
+un menor error en la generalización.</p>
+<div class="prop">
+<p><strong>Proposición 1.2</strong>. <em>Dado un método por conjuntos
+con
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>
+máquinas de aprendizaje
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>i</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><annotation encoding="application/x-tex">f^{(i)}</annotation></semantics></math>,
+cada una con error
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϵ</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\epsilon_i</annotation></semantics></math>,
+varianza
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>σ</mi><mn>2</mn></msup><mo>=</mo><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><msubsup><mi>ϵ</mi><mi>i</mi><mn>2</mn></msubsup><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">\sigma^2 = \mathbb{E}[\epsilon_i^2]</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi><mo>=</mo><mn>1</mn><mo>,</mo><mn>2</mn><mo>,</mo><mi>.</mi><mi>.</mi><mi>.</mi><mo>,</mo><mi>M</mi></mrow><annotation encoding="application/x-tex">i=1,2,...,M</annotation></semantics></math>,
+y que muestran covarianza
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mo>=</mo><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>ϵ</mi><mi>i</mi></msub><msub><mi>ϵ</mi><mi>j</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">c = \mathbb{E}[\epsilon_i \epsilon_j]</annotation></semantics></math>,
+entonces el error esperado es:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝔼</mi><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">[</mo><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><mfrac><mn>1</mn><mi>M</mi></mfrac><munder><mo>∑</mo><mi>i</mi></munder><msub><mi>ϵ</mi><mi>i</mi></msub><msup><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo><mn>2</mn></msup><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">]</mo><mo>=</mo><mfrac><msup><mi>σ</mi><mn>2</mn></msup><mi>M</mi></mfrac><mo>+</mo><mfrac><mrow><mi>M</mi><mo>−</mo><mn>1</mn></mrow><mi>M</mi></mfrac><mi>c</mi></mrow><annotation encoding="application/x-tex">\mathbb{E}\Big[ \big(\frac{1}{M} \sum_{i} \epsilon_i\big)^2 \Big] = \frac{\sigma^2}{M} + \frac{M-1}{M}c</annotation></semantics></math></em></p>
+</div>
+<div class="proof">
+<p><em>Proof.</em> Bajos los supuestos del teorema, esto es, asumiendo
+que cada máquina de aprendizaje tiene un error
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϵ</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\epsilon_i</annotation></semantics></math>
+y una varianza
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>σ</mi><mn>2</mn></msup><mo>=</mo><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><msubsup><mi>ϵ</mi><mi>i</mi><mn>2</mn></msubsup><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">\sigma^2 = \mathbb{E}[\epsilon_i^2]</annotation></semantics></math>,
+tenemos el siguiente desarrollo:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><mi>𝔼</mi><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">[</mo><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><mfrac><mn>1</mn><mi>M</mi></mfrac><munder><mo>∑</mo><mi>i</mi></munder><msub><mi>ϵ</mi><mi>i</mi></msub><msup><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo><mn>2</mn></msup><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">]</mo></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mfrac><mn>1</mn><msup><mi>M</mi><mn>2</mn></msup></mfrac><mi>𝔼</mi><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">[</mo><munder><mo>∑</mo><mi>i</mi></munder><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><msubsup><mi>ϵ</mi><mi>i</mi><mn>2</mn></msubsup><mo>+</mo><munder><mo>∑</mo><mrow><mi>j</mi><mo>≠</mo><mi>i</mi></mrow></munder><msub><mi>ϵ</mi><mi>i</mi></msub><msub><mi>ϵ</mi><mi>j</mi></msub><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">]</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mfrac><mn>1</mn><msup><mi>M</mi><mn>2</mn></msup></mfrac><munder><mo>∑</mo><mi>i</mi></munder><mi>𝔼</mi><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">[</mo><msubsup><mi>ϵ</mi><mi>i</mi><mn>2</mn></msubsup><mo>+</mo><munder><mo>∑</mo><mrow><mi>j</mi><mo>≠</mo><mi>i</mi></mrow></munder><msub><mi>ϵ</mi><mi>i</mi></msub><msub><mi>ϵ</mi><mi>j</mi></msub><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">]</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mfrac><mn>1</mn><msup><mi>M</mi><mn>2</mn></msup></mfrac><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">(</mo><munder><mo>∑</mo><mi>i</mi></munder><mi>𝔼</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">[</mo><msubsup><mi>ϵ</mi><mi>i</mi><mn>2</mn></msubsup><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">]</mo><mo>+</mo><munder><mo>∑</mo><mrow><mi>j</mi><mo>≠</mo><mi>i</mi></mrow></munder><mi>𝔼</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">[</mo><msub><mi>ϵ</mi><mi>i</mi></msub><msub><mi>ϵ</mi><mi>j</mi></msub><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">]</mo><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">)</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mfrac><mn>1</mn><msup><mi>M</mi><mn>2</mn></msup></mfrac><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">(</mo><munder><mo>∑</mo><mi>i</mi></munder><msup><mi>σ</mi><mn>2</mn></msup><mo>+</mo><munder><mo>∑</mo><mrow><mi>j</mi><mo>≠</mo><mi>i</mi></mrow></munder><mi>c</mi><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">)</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mfrac><mn>1</mn><msup><mi>M</mi><mn>2</mn></msup></mfrac><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">(</mo><mi>M</mi><msup><mi>σ</mi><mn>2</mn></msup><mo>+</mo><mi>M</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>M</mi><mo>−</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mi>c</mi><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">)</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mfrac><mn>1</mn><mi>M</mi></mfrac><msup><mi>σ</mi><mn>2</mn></msup><mo>+</mo><mfrac><mrow><mi>M</mi><mo>−</mo><mn>1</mn></mrow><mi>M</mi></mfrac><mi>c</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+    \mathbb{E}\Big[ \big(\frac{1}{M} \sum_{i} \epsilon_i\big)^2 \Big] &amp;= \frac{1}{M^2} \mathbb{E}\Big[  \sum_i \big( \epsilon_i^2 + \sum_{j \neq i} \epsilon_i \epsilon_j \big) \Big] \\
+    &amp;= \frac{1}{M^2} \sum_i \mathbb{E}\Big[    \epsilon_i^2 + \sum_{j \neq i} \epsilon_i \epsilon_j  \Big] \\
+    &amp;= \frac{1}{M^2} \Big(\sum_i \mathbb{E}\big[    \epsilon_i^2 \big] + \sum_{j \neq i} \mathbb{E}\big[\epsilon_i \epsilon_j  \big] \Big)\\
+    &amp;= \frac{1}{M^2} \Big(\sum_i \sigma^2 + \sum_{j \neq i} c \Big)\\
+    &amp;= \frac{1}{M^2} \Big(M \sigma^2 + M(M-1) c \Big)\\
+    &amp;= \frac{1}{M}\sigma^2 + \frac{M-1}{M} c
+\end{aligned}</annotation></semantics></math> ◻</p>
+</div>
+<p>De teorema anterior se observa que si los errores están perfectamente
+correlacionados, esto es
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mo>=</mo><msup><mi>σ</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">c=\sigma^2</annotation></semantics></math>
+que implica que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϵ</mi><mi>i</mi></msub><mo>=</mo><msub><mi>ϵ</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">\epsilon_i = \epsilon_j</annotation></semantics></math>,
+entonces el error esperado será simplemente
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>σ</mi><mn>2</mn></msup><annotation encoding="application/x-tex">\sigma^2</annotation></semantics></math>;
+por lo que, en este caso, el modelo por conjuntos no tiene ningún
+efecto, pues todos los modelos actúan de la misma forma y la predicción
+final entre los modelos es la misma.</p>
+<p>Por otro lado, si no hay correlación entre los errores de los
+modelos, esto es
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">c = 0</annotation></semantics></math>,
+el error esperado es
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mn>1</mn><mi>M</mi></mfrac><msup><mi>σ</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">\frac{1}{M} \sigma^2</annotation></semantics></math>,
+lo que implica que entre más modelos se tenga, más pequeño será el error
+esperado. Es decir, si tenemos un método por conjuntos cuyos modelos de
+aprendizaje tengan una distribución completamente distinta, el error de
+generalización tenderá a 0.</p>
+<p>En este sentido, para que una técnica por conjuntos surja efecto se
+espera que los modelos del conjunto estén lo menos correlacionados
+posible, cuando es así, ensamblar un mayor número de modelos implica
+reducir el error esperado; pero si la correlación del error entre los
+modelos es alta, entonces la técnica por conjunto tiene menos efecto en
+la regularización. Esto parece lógico, pues tenemos un conjunto de
+jueces con diferentes formas de juzgar, pero que asumimos juzgan siempre
+de la mejor manera según sus propios criterios. El problema con los
+métodos por conjuntos es el costo de entrenar varios modelos,
+principalmente cuando se trata de modelos neuronales, pues éstos son
+costosos de entrenar.</p>
+<h2 id="dropout">Dropout</h2>
+<p>Una forma de simular los modelos por conjuntos a partir de las redes
+neuronales es por medio de generar diferentes arquitecturas variando el
+número de neuronas que cada red cuenta. En particular, se propone que
+las unidades ocultas en cada capa oculta varíen, siendo que el número de
+neuronas afecta a la capacidad de una red neuronal. El método de
+<em>dropout</em> <span class="citation"
+data-cites="srivastava2014dropout"></span> busca crear un conjunto de
+redes neuronales diferentes que se encarguen de procesar los datos en
+una sola tarea. Este método aprovecha la flexibilidad de las redes
+neuronales al generar redes independientes a partir de una arquitectura
+base por medio de reducir el número de neuronas en cada capa oculta. Las
+nuevas arquitecturas se determinan por medio de ignorar nodos dentro de
+la red base. Como se observa en la Figura <a href="#fig:dropout"
+data-reference-type="ref" data-reference="fig:dropout">1.7</a>, el
+método de dropout elimina nodos dentro de la red y, por tanto, ignora
+las conexiones de estos nodos. La red que resulta de aplicar el dropout
+puede verse como una nueva red. Repitiendo este método varias veces,
+eliminando de forma aleatoria un conjunto de nodos de la red, se crea un
+conjunto de redes que funcionan como un método por conjuntos.</p>
+<div class="mydef">
+<p><strong>Definición 1.13</strong> (Dropout). <em>Sea
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>:</mo><mi>X</mi><mo>→</mo><mi>Y</mi></mrow><annotation encoding="application/x-tex">f: X \to Y</annotation></semantics></math>
+una red neuronal con arquitectura
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">{</mo><mi>K</mi><mo>,</mo><msub><mi>m</mi><mi>i</mi></msub><mo>:</mo><mi>i</mi><mo>=</mo><mn>1</mn><mo>,</mo><mn>2</mn><mo>,</mo><mi>.</mi><mi>.</mi><mi>.</mi><mo>,</mo><mi>K</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\{ K, m_i : i = 1,2,...,K\}</annotation></semantics></math>
+donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>
+son las capas oculta. El modelo de regularización <em>dropout</em>
+modifica las capas ocultas como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mover><mi>h</mi><mo accent="true">¯</mo></mover><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>=</mo><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>⊙</mo><mi>μ</mi></mrow><annotation encoding="application/x-tex">\overline{h}^{(k)} = h^{(k)} \odot \mu</annotation></semantics></math>
+Para cada capa oculta
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo>,</mo><mn>2</mn><mo>,</mo><mi>.</mi><mi>.</mi><mi>.</mi><mo>,</mo><mi>K</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">k \in \{1,2,...,K\}</annotation></semantics></math>,
+donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mo>∼</mo><mi>B</mi><mi>e</mi><mi>r</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>p</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mu \sim Ber(p)</annotation></semantics></math>
+es un vector binario con distribución Bernoulli con parámetro
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>.</em></p>
+</div>
+<figure id="fig:dropout">
+<img src="images/Dropout.png" />
+<figcaption>Generación de una nueva arquitectura a partir del método de
+dropout</figcaption>
+</figure>
+<p>Ya que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>
+es un vector aleatorio, cada capa oculta en el dropout tiene un número
+diferente de unidades ocultas cada vez que se recorre la red durante el
+entrenamiento. Es decir, se genera un conjunto de sub-redes con
+diferentes arquitecturas que dependen del número de unidades ocultas en
+cada capa. Es claro que rn la salida no se aplica el dropout pues,
+precisamente, buscamos que diferentes arquitecturas se entrenen para una
+misma tarea. El dropout se aplica a las capas ocultas y, algunas veces,
+a las neuronas de entrada (para modificar los datos como en el aumento
+de datos por ruido). Asimismo, este método suele combinarse con el
+entrenamiento por mini lotes para obtener en cada lote una arquitectura
+distinta sobre un subconjunto diferente de los datos de entrada.</p>
+<p>Para aplicar el dropout, se utiliza lo que se conoce como
+enmascaramiento (<em>masking</em> en inglés). El enmascaramiento aplica
+una máscara a cada unidad oculta en una de las capas ocultas de la red
+base. Esta máscara genera valores aleatorios 0 ó 1 para cada unidad
+oculta. Si la máscara es 0, la unidad se ignora, si es 1 entonces la
+unidad se preserva. El enmascaramiento depende de una probabilidad
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>.
+Por ejemplo, si elegimos una probabilidad
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mfrac><mn>1</mn><mn>2</mn></mfrac></mrow><annotation encoding="application/x-tex">p = \frac{1}{2}</annotation></semantics></math>
+una neurona de la red se va a enmascarar con 0 (ignorar) la mitad de las
+veces, y la otra mitad será 1 (permanecer).</p>
+<p>Dada una capa oculta
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo>∈</mo><msup><mi>ℝ</mi><mi>m</mi></msup></mrow><annotation encoding="application/x-tex">h \in \mathbb{R}^m</annotation></semantics></math>
+con
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>
+unidades ocultas, podemos definir el vector de enmascaramiento
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>0</mn><mo>,</mo><mn>1</mn><msup><mo stretchy="false" form="postfix">}</mo><mi>m</mi></msup></mrow><annotation encoding="application/x-tex">\mu \in \{0,1\}^m</annotation></semantics></math>
+que será un vector de 0s y 1s. Esto facilita la forma de enmascarar,
+pues el vector
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>
+se genera en base a la probabilidad
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>,
+asignando un 0 o un 1 a cada entrada en base a la probabilidad, y para
+enmascarar la capa oculta
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+se realiza un producto punto a punto entre
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>.
+Por ejemplo, pensemos que tenemos el vector
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>h</mi><mi>T</mi></msup><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0.5</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0.4</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0.3</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">h^T = \begin{pmatrix} -1 &amp; 0.5 &amp; 0.4 &amp; 0.3 \end{pmatrix}</annotation></semantics></math>
+en la red base, y generamos un vector de enmascaramiento en base a una
+probabilidad
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>
+que sea
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>μ</mi><mi>T</mi></msup><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mu^T = \begin{pmatrix} 0 &amp; 1 &amp; 1 &amp; 0 \end{pmatrix}</annotation></semantics></math>,
+entonces la capa en la sub-red será:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>h</mi><mo accent="true">¯</mo></mover><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>0.5</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>0.4</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>0.3</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow><mo>⊙</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>0.5</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>0.4</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\overline{h} = \begin{pmatrix} -1 \\ 0.5 \\ 0.4 \\ 0.3 \end{pmatrix} \odot \begin{pmatrix} 0 \\ 1 \\ 1 \\ 0 \end{pmatrix} = \begin{pmatrix} 0 \\ 0.5 \\ 0.4 \\ 0 \end{pmatrix}</annotation></semantics></math>
+Es decir, se están enmascarando con 0 la primera y la última unidad
+oculta, por lo que en la sub-red estas unidades serán ignoradas, dando
+como resultado una sub-red con sólo dos unidades ocultas en lugar de
+cuatro. Estas unidades serán la segunda y tercera unidades de la red
+base.</p>
+<p>Al genera un conjunto nuevo de sub-redes, es claro que durante el
+entrenamiento no se actualizarán aquellos pesos que provengan de
+unidades ignoradas o enmascaradas. Como hemos señalado, cada sub-red
+puede pensarse como un modelo distinto; por tanto, podemos pensar que
+cada sub-red depende de una función de riesgo particular. Denotemos a
+esta función de riesgo como
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo>;</mo><mi>μ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">R(\theta; \mu)</annotation></semantics></math>
+donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
+son los pesos y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>
+es el vector (o tensor) de enmascaramiento. Esta notación nos permite
+ver que la función de riesgo es similar para todas las sub-redes, pero
+que sólo varía en los pesos que considera. Es decir, podemos pensar que
+la función de riesgo depende los pesos
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi><mo>⊙</mo><mi>μ</mi></mrow><annotation encoding="application/x-tex">\theta \odot \mu</annotation></semantics></math>,
+que son los pesos que permanecen activos en esa sub-red.</p>
+<p>De esta forma, la función de riesgo no podrá considerarse similar en
+todos los casos. Por tanto, lo que se sugiere es adoptar un régimen de
+entrenamiento en que se minimice no una sola función de riesgo, sino el
+valor esperado de las funciones de riesgos sobre los pesos de cada
+sub-red. Esto implica que nuestro problema de optimización se plantea
+ahora como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>min</mo><msub><mi>𝔼</mi><mi>μ</mi></msub><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">[</mo><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo>;</mo><mi>μ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">]</mo><mo>=</mo><mo>min</mo><munder><mo>∑</mo><mi>μ</mi></munder><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>μ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo>;</mo><mi>μ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\min \mathbb{E}_\mu \big[ R(\theta; \mu) \big] = \min \sum_\mu p(\mu) R(\theta; \mu)</annotation></semantics></math>
+Donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>μ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">p(\mu)</annotation></semantics></math>
+es la probabilidad de ese tensor de enmascaramiento o, lo que es lo
+mismo, la probabilidad de la sub-red. De igual forma que en los modelos
+por conjuntos, para obtener una predicción de la red, podemos usar las
+diferentes sub-redes y obtener una predicción
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>y</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{y}</annotation></semantics></math>
+en base al valor esperado de las predicciones de cada una de las
+sub-redes:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>y</mi><mo accent="true">̂</mo></mover><mo>=</mo><mo>arg</mo><munder><mo>max</mo><mi>y</mi></munder><munder><mo>∑</mo><mi>μ</mi></munder><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>μ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><mi>x</mi><mo>,</mo><mi>μ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\hat{y} = \arg\max_y \sum_\mu p(\mu) p(y|x, \mu)</annotation></semantics></math>
+Otra forma de obtener una predicción, propuesta por <span
+class="citation" data-cites="warde2013empirical"></span>, es por medio
+no del valor esperado, sino de la media geométrica de las
+probabilidades.</p>
+<div class="mydef">
+<p><strong>Definición 1.14</strong> (Dropout boosting). <em>Se llama
+<em>dropout boosting</em> al método de entrenamiento con dropout basado
+en una función objetivo que toma como probabilidad de clases:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mrow><mi>e</mi><mi>n</mi><mi>s</mi></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><mrow><msub><mover><mi>p</mi><mo accent="true">̂</mo></mover><mrow><mi>e</mi><mi>n</mi><mi>s</mi></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><munder><mo>∑</mo><mrow><mi>y</mi><mi>′</mi></mrow></munder><msub><mover><mi>p</mi><mo accent="true">̂</mo></mover><mrow><mi>e</mi><mi>n</mi><mi>s</mi></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mi>′</mi><mo stretchy="false" form="prefix">|</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac></mrow><annotation encoding="application/x-tex">p_{ens}(y|x) = \frac{\hat{p}_{ens}(y|x)}{\sum_{y&#39;} \hat{p}_{ens}(y&#39;|x)}</annotation></semantics></math>
+Donde las probabilidades
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>p</mi><mo accent="true">̂</mo></mover><mrow><mi>e</mi><mi>n</mi><mi>s</mi></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\hat{p}_{ens}(y|x)</annotation></semantics></math>
+están dadas por la media geométrica como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mi>p</mi><mo accent="true">̂</mo></mover><mrow><mi>e</mi><mi>n</mi><mi>s</mi></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">(</mo><munder><mo>∏</mo><mi>μ</mi></munder><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><mi>x</mi><mo>,</mo><mi>μ</mi><mo stretchy="true" form="postfix">)</mo></mrow><msup><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">)</mo><mrow><mn>1</mn><mi>/</mi><msup><mn>2</mn><mi>r</mi></msup></mrow></msup></mrow><annotation encoding="application/x-tex">\hat{p}_{ens}(y|x) = \Big( \prod_\mu p(y|x, \mu) \Big)^{1/2^r}</annotation></semantics></math>
+Tal que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
+es el número de unidades que se enmascaran.</em></p>
+</div>
+<p>De esta forma, se puede predecir la probabilidad de clase con un
+modelo basado en dropout, de forma similar a los modelos por conjuntos.
+El <em>dropout boosting</em> puede aplicarse a cualquier método por
+conjuntos, pero es particularmente interesante cuando se usa con el
+método de dropout. Bajo el método de dropout, la probabilidad de clase
+de un vector de entrada puede aproximarse usando el modelo base, es
+decir, usando la red neuronal con todas las neuronas activas, pero con
+los pesos de la red multiplicados por la probabilidad de dropout. A esta
+forma de obtener las probabilidades de salida se le conoce como la regla
+de inferencia por escalamiento de pesos o <em>weight scaling inference
+rule</em>.</p>
+<div class="theo">
+<p><strong>Teorema 1.2</strong> (Weight scaling inference rule). <em>Sea
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>=</mo><mi>S</mi><mi>o</mi><mi>f</mi><mi>t</mi><mi>m</mi><mi>a</mi><mi>x</mi><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">(</mo><mi>W</mi><mover><mi>h</mi><mo accent="true">¯</mo></mover><mo>+</mo><mi>b</mi><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f = Softmax\Big( W \overline{h} + b \Big)</annotation></semantics></math>
+una red neuronal con activación softmax en la capa de salida y en la que
+se ha aplicado el regularización dropout para obtener capas
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mover><mi>h</mi><mo accent="true">¯</mo></mover><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>=</mo><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>⊙</mo><mi>μ</mi></mrow><annotation encoding="application/x-tex">\overline{h}^{(k)} = h^{(k)} \odot \mu</annotation></semantics></math>,
+con
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo>,</mo><mi>.</mi><mi>.</mi><mi>.</mi><mo>,</mo><mi>K</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">k \in \{1,...,K\}</annotation></semantics></math>
+y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mo>∼</mo><mi>B</mi><mi>e</mi><mi>r</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>p</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mu \sim Ber(p)</annotation></semantics></math>.
+Entonces:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mrow><mi>e</mi><mi>n</mi><mi>s</mi></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><mi>h</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>S</mi><mi>o</mi><mi>f</mi><mi>t</mi><mi>m</mi><mi>a</mi><msub><mi>x</mi><mi>y</mi></msub><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">(</mo><mfrac><mn>1</mn><msup><mn>2</mn><mi>r</mi></msup></mfrac><mi>W</mi><mi>h</mi><mo>+</mo><mi>b</mi><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">p_{ens}(y|h) = Softmax_y\Big( \frac{1}{2^r} Wh + b\Big)</annotation></semantics></math>
+Donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
+es el número de neuronas enmascaradas con
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>.</em></p>
+</div>
+<div class="proof">
+<p><em>Proof.</em> Sea
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>:</mo><mi>X</mi><mo>→</mo><mi>Y</mi></mrow><annotation encoding="application/x-tex">f: X \to Y</annotation></semantics></math>
+la red neuronal cuya capa de salida define la función de probabilidad:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><mi>h</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>S</mi><mi>o</mi><mi>f</mi><mi>t</mi><mi>m</mi><mi>a</mi><mi>x</mi><msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>W</mi><mi>h</mi><mo>+</mo><mi>b</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>y</mi></msub></mrow><annotation encoding="application/x-tex">p(y|h) = Softmax(Wh +b)_y</annotation></semantics></math>.
+Si tomamos un vector máscara
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>,
+entonces la probabilidad de cada sub-red estará dada como
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><mi>h</mi><mo>,</mo><mi>μ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>S</mi><mi>o</mi><mi>f</mi><mi>t</mi><mi>m</mi><mi>a</mi><mi>x</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><mi>W</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>h</mi><mo>⊙</mo><mi>μ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mi>b</mi><msub><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo><mi>y</mi></msub></mrow><annotation encoding="application/x-tex">p(y|h, \mu) = Softmax\big(W(h \odot \mu) +b\big)_y</annotation></semantics></math>,
+que al obtener la probabilidad del conjunto final resulta en:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mrow><mi>e</mi><mi>n</mi><mi>s</mi></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><mi>h</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><mrow><msub><mover><mi>p</mi><mo accent="true">̂</mo></mover><mrow><mi>e</mi><mi>n</mi><mi>s</mi></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><mi>h</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><munder><mo>∑</mo><mrow><mi>y</mi><mi>′</mi></mrow></munder><msub><mover><mi>p</mi><mo accent="true">̂</mo></mover><mrow><mi>e</mi><mi>n</mi><mi>s</mi></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mi>′</mi><mo stretchy="false" form="prefix">|</mo><mi>h</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac></mrow><annotation encoding="application/x-tex">p_{ens}(y|h) = \frac{\hat{p}_{ens}(y|h) }{\sum_{y&#39;} \hat{p}_{ens}(y&#39;|h)}</annotation></semantics></math>
+La cual es la probabilidad en la capa de salida. A partir de este valor
+podemos derivar lo siguiente, suponiendo que el número de neuronas
+enmascaradas es
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><msub><mover><mi>p</mi><mo accent="true">̂</mo></mover><mrow><mi>e</mi><mi>n</mi><mi>s</mi></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><mi>h</mi><mo stretchy="true" form="postfix">)</mo></mrow></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">(</mo><munder><mo>∏</mo><mi>μ</mi></munder><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><mi>h</mi><mo>,</mo><mi>μ</mi><mo stretchy="true" form="postfix">)</mo></mrow><msup><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">)</mo><mrow><mn>1</mn><mi>/</mi><msup><mn>2</mn><mi>r</mi></msup></mrow></msup></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">(</mo><munder><mo>∏</mo><mi>μ</mi></munder><mi>S</mi><mi>o</mi><mi>f</mi><mi>t</mi><mi>m</mi><mi>a</mi><mi>x</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><mi>W</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>h</mi><mo>⊙</mo><mi>μ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mi>b</mi><msub><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo><mi>y</mi></msub><msup><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">)</mo><mrow><mn>1</mn><mi>/</mi><msup><mn>2</mn><mi>r</mi></msup></mrow></msup></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">(</mo><munder><mo>∏</mo><mi>μ</mi></munder><mfrac><mn>1</mn><mi>Z</mi></mfrac><mi>e</mi><mi>x</mi><mi>p</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><msub><mi>W</mi><mrow><mi>y</mi><mo>,</mo><mo>⋅</mo></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>h</mi><mo>⊙</mo><mi>μ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>b</mi><mi>y</mi></msub><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo><msup><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">)</mo><mrow><mn>1</mn><mi>/</mi><msup><mn>2</mn><mi>r</mi></msup></mrow></msup></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>∝</mo><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">(</mo><munder><mo>∏</mo><mi>μ</mi></munder><mi>e</mi><mi>x</mi><mi>p</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><msub><mi>W</mi><mrow><mi>y</mi><mo>,</mo><mo>⋅</mo></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>h</mi><mo>⊙</mo><mi>μ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>b</mi><mi>y</mi></msub><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo><msup><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">)</mo><mrow><mn>1</mn><mi>/</mi><msup><mn>2</mn><mi>r</mi></msup></mrow></msup></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mi>e</mi><mi>x</mi><mi>p</mi><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">(</mo><mfrac><mn>1</mn><msup><mn>2</mn><mi>r</mi></msup></mfrac><munder><mo>∑</mo><mi>μ</mi></munder><msub><mi>W</mi><mrow><mi>y</mi><mo>,</mo><mo>⋅</mo></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>h</mi><mo>⊙</mo><mi>μ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>b</mi><mi>y</mi></msub><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">)</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mi>e</mi><mi>x</mi><mi>p</mi><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">(</mo><mfrac><mn>1</mn><msup><mn>2</mn><mi>r</mi></msup></mfrac><msub><mi>W</mi><mrow><mi>y</mi><mo>,</mo><mo>⋅</mo></mrow></msub><mi>h</mi><mo>+</mo><msub><mi>b</mi><mi>y</mi></msub><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">)</mo></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+    \hat{p}_{ens}(y|h) &amp;= \Big( \prod_\mu p(y|h,\mu)  \Big)^{1/2^r} \\
+                &amp;= \Big( \prod_\mu Softmax\big(W(h\odot \mu) + b\big)_y   \Big)^{1/2^r} \\
+                &amp;= \Big( \prod_\mu \frac{1}{Z}exp\big(W_{y,\cdot}(h\odot \mu) + b_y\big)   \Big)^{1/2^r} \\
+                &amp;\propto \Big( \prod_\mu exp\big(W_{y,\cdot}(h\odot \mu) + b_y\big)   \Big)^{1/2^r} \\
+                &amp;= exp\Big(\frac{1}{2^r}\sum_\mu W_{y,\cdot}(h\odot \mu) + b_y\Big) \\
+                &amp;= exp\Big(\frac{1}{2^r} W_{y,\cdot} h + b_y\Big)
+    
+\end{aligned}</annotation></semantics></math> Aquí
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Z</mi><mo>=</mo><msub><mo>∑</mo><mrow><mi>y</mi><mi>′</mi></mrow></msub><msub><mover><mi>p</mi><mo accent="true">̂</mo></mover><mrow><mi>e</mi><mi>n</mi><mi>s</mi></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mi>′</mi><mo stretchy="false" form="prefix">|</mo><mi>h</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">Z = \sum_{y&#39;} \hat{p}_{ens}(y&#39;|h)</annotation></semantics></math>
+representa la función de partición que es constante para cada salida de
+la red, por lo que podemos aplicar la proporcionalidad. De este
+desarrollo se puede obtener que la probabilidad con base en <em>dropout
+boosting</em> es:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>p</mi><mrow><mi>e</mi><mi>n</mi><mi>s</mi></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><mi>h</mi><mo stretchy="true" form="postfix">)</mo></mrow></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mfrac><mrow><msub><mover><mi>p</mi><mo accent="true">̂</mo></mover><mrow><mi>e</mi><mi>n</mi><mi>s</mi></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><mi>h</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><munder><mo>∑</mo><mrow><mi>y</mi><mi>′</mi></mrow></munder><msub><mover><mi>p</mi><mo accent="true">̂</mo></mover><mrow><mi>e</mi><mi>n</mi><mi>s</mi></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mi>′</mi><mo stretchy="false" form="prefix">|</mo><mi>h</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mfrac><mrow><mi>e</mi><mi>x</mi><mi>p</mi><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">(</mo><mfrac><mn>1</mn><msup><mn>2</mn><mi>n</mi></msup></mfrac><msubsup><mi>W</mi><mrow><mi>y</mi><mo>,</mo><mo>⋅</mo></mrow><mi>T</mi></msubsup><mi>h</mi><mo>+</mo><msub><mi>b</mi><mi>y</mi></msub><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">)</mo></mrow><mrow><munder><mo>∑</mo><mrow><mi>y</mi><mi>′</mi></mrow></munder><mi>e</mi><mi>x</mi><mi>p</mi><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">(</mo><mfrac><mn>1</mn><msup><mn>2</mn><mi>n</mi></msup></mfrac><msubsup><mi>W</mi><mrow><mi>y</mi><mi>′</mi><mo>,</mo><mo>⋅</mo></mrow><mi>T</mi></msubsup><mi>h</mi><mo>+</mo><msub><mi>b</mi><mrow><mi>y</mi><mi>′</mi></mrow></msub><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">)</mo></mrow></mfrac></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mi>S</mi><mi>o</mi><mi>f</mi><mi>t</mi><mi>m</mi><mi>a</mi><msub><mi>x</mi><mi>y</mi></msub><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">(</mo><mfrac><mn>1</mn><msup><mn>2</mn><mi>r</mi></msup></mfrac><mi>W</mi><mi>h</mi><mo>+</mo><mi>b</mi><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">)</mo></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+    p_{ens}(y|h) &amp;= \frac{\hat{p}_{ens}(y|h) }{\sum_{y&#39;} \hat{p}_{ens}(y&#39;|h)} \\
+                &amp;= \frac{exp\Big(\frac{1}{2^n} W_{y,\cdot}^T h + b_y\Big)}{ \sum_{y&#39;} exp\Big(\frac{1}{2^n} W_{y&#39;,\cdot}^T h + b_{y&#39;}\Big)} \\
+                &amp;= Softmax_y\Big(\frac{1}{2^r}Wh + b\Big)
+\end{aligned}</annotation></semantics></math> ◻</p>
+</div>
+<p>En el desarrollo del problema anterior se puede asumir que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mfrac><mn>1</mn><msup><mn>2</mn><mi>r</mi></msup></mfrac><annotation encoding="application/x-tex">\frac{1}{2^r}</annotation></semantics></math>
+es la probabilidad total del dropout. De esta forma, el método de
+dropout permite una forma eficiente de regularización, su costo durante
+el entrenamiento es de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>r</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(r)</annotation></semantics></math>,
+donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
+es el número de unidades que se enmascaran. El dropout puede
+interpretarse como un método por conjuntos donde la misma red se va
+adaptando a diferentes arquitecturas en diferentes épocas durante el
+entrenamiento. En la práctica, es común que en el tiempo de inferencia
+se ocupe la red completa, sin el factor
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mfrac><mn>1</mn><msup><mn>2</mn><mi>r</mi></msup></mfrac><annotation encoding="application/x-tex">\frac{1}{2^r}</annotation></semantics></math>,
+para la predicción. De cualquier forma, el dropout evita el sobre-ajuste
+al entrenar sobre diferentes secciones de la red en cada época del
+entrenamiento. Actualmente, este es uno de los métodos de regularización
+más utilizados.</p>
+<h2 class="unnumbered" id="ejercicios">Ejercicios</h2>
+<ol>
+<li><p>Usar el método de retro-propagación para obtener las derivadas de
+la siguiente red de regresión que utiliza regularización
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mn>2</mn></msub><annotation encoding="application/x-tex">L_2</annotation></semantics></math>:</p>
+<ul>
+<li><p>Capa de entrada:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>∈</mo><msup><mi>ℝ</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">x \in \mathbb{R}^2</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>=</mo><mi>R</mi><mi>e</mi><mi>L</mi><mi>U</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>W</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mi>x</mi><mo>+</mo><msup><mi>b</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">h^{(1)} = ReLU(W^{(1)}x + b^{(1)})</annotation></semantics></math>
+con 5 unidades ocultas.</p></li>
+<li><p>Segunda capa:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>2</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>=</mo><mi>S</mi><mi>o</mi><mi>f</mi><mi>t</mi><mi>p</mi><mi>l</mi><mi>u</mi><mi>s</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>W</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>2</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>+</mo><msup><mi>b</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>2</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">h^{(2)} = Softplus(W^{(2)} h^{(1)} + b^{(2)})</annotation></semantics></math>
+con 10 unidades.</p></li>
+<li><p>Capa de salida:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msup><mi>W</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>4</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>3</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>+</mo><msup><mi>b</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>4</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup></mrow><annotation encoding="application/x-tex">f(x) = W^{(4)} h^{(3)} + b^{(4)}</annotation></semantics></math>
+con 2 unidades.</p></li>
+<li><p>Función objetivo:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msub><mo>∑</mo><mi>x</mi></msub><msub><mo>∑</mo><mi>y</mi></msub><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><mi>y</mi><mo>−</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><msup><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo><mn>2</mn></msup><mo>+</mo><msub><mi>L</mi><mn>2</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">R(\theta) = \sum_x \sum_y \big( y-f(x) \big)^2 + L_2(\theta)</annotation></semantics></math></p></li>
+</ul></li>
+<li><p>Repite el ejercicio anterior pero utilizando la función objetivo
+con regularización
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mn>1</mn></msub><annotation encoding="application/x-tex">L_1</annotation></semantics></math>.</p></li>
+<li><p>Repite el ejercicio utilizando la regularización de <em>elastic
+net</em>.</p></li>
+<li><p>Implementa una red neuronal que incorpore métodos de
+robustecimiento por ruido.</p></li>
+<li><p>Utiliza el conjunto de datos <code>linnerud</code> de la
+biblioteca <code>sklearn</code> para entrenar un modelo de aprendizaje
+multi-tarea sobre las 3 clases de este conjunto. Determina un número de
+capas compartidas. Evalúa los resultados en cada tarea.</p></li>
+<li><p>Implementa una red neuronal que entrene utilizando dropout y
+<em>early stopping</em>.</p></li>
+</ol>
+<aside id="footnotes" class="footnotes footnotes-end-of-document"
+role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p>También debe notarse que la derivada en
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>L</mi><mn>1</mn></msub><annotation encoding="application/x-tex">L_1</annotation></semantics></math>
+no está definido en el 0; en la práctica, suele ignorarse este caso
+asumiendo que los pesos nunca se anularán. Cuando no se utiliza
+retropropagación, se pueden implementar métodos de subgradientes como
+<em>Iterative Soft-Thresholding Algorithm</em> <span class="citation"
+data-cites="beck2009fast"></span>. Dado que las derivaciones en redes
+profundas suelen aumentar la complejidad, estos métodos no son
+comunes.<a href="#fnref1" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+</ol>
+</aside>
+</body>
+</html>
