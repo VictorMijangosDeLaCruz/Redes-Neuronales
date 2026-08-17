@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Teoría de aprendiza
+estadístico</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Modelos de aprendizaje estadístico</h1>
+<p class="date"> </p>
+</header>
+
+<p>Nuestro problema consiste en entender y construir máquinas que
+aprendan. Como en otros problemas con que los humanos nos enfrentamos,
+resulta aquí de suma importancia el determinar un modelo matemático que
+describa las capacidades que tiene una máquina para aprender sobre
+problemas. Se han hecho varias propuestas en la teoría de aprendizaje
+estadístico: una de ellas, propuesta por <span class="citation"
+data-cites="valiant1984theory"></span>, es el aprendizaje PAC (por sus
+siglas en inglés <em>Probably Approximate Correct Learning</em>); otra
+propuesta es el aprendizaje VC (siglas de los apellidos de sus
+creadores, los investigadores rusos Vladimir Vapnik y Alexey
+Chervonenkis). Se ha probado que ambas teorías son equivalentes. Aquí
+nos enfocamos en la última: la teoría VC.</p>
+<p>En este marco, <span class="citation"
+data-cites="vapnik1998statistical"></span> propone el <strong>modelo
+general de aprendizaje a partir de ejemplos</strong>, el cual busca
+sintetizar el proceso de aprendizaje por medio de tres elementos
+esenciales:</p>
+<ul>
+<li><p><strong>Generador:</strong> Se encarga de generar la experiencia
+(ejemplos), que se describen a partir de una distribución de
+probabilidad
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">p(x)</annotation></semantics></math>.
+Generalmente estos ejemplos
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+son vectores y la función de probabilidad define la forma en que se
+comportan.</p></li>
+<li><p><strong>Supervisor:</strong> Determina una solución al problema,
+asociando a cada ejemplo
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+su solución
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>.
+La supervisión puede o no estar presente durante el aprendizaje, en cada
+caso hablaremos de un tipo distinto de aprendizaje.</p></li>
+<li><p><strong>Máquina de aprendizaje:</strong> Es una función
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>
+que toma un ejemplo de entrada y le asigna un valor de salida, de tal
+forma que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mover><mi>y</mi><mo accent="true">̂</mo></mover></mrow><annotation encoding="application/x-tex">f(x) = \hat{y}</annotation></semantics></math>,
+donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>y</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{y}</annotation></semantics></math>
+es una predicción hecha por la máquina de aprendizaje que busca ser lo
+más cercana a la supervisión
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>.</p></li>
+</ul>
+<p>De esta forma, el objetivo del aprendizaje automático es encontrar
+una máquina de aprendizaje que genere salidas
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>y</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{y}</annotation></semantics></math>
+que sean lo más cercanas posibles a los elementos del supervisor
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>.
+En este sentido, la máquina de aprendizaje es una función:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>:</mo><mi>X</mi><mo>→</mo><mi>Y</mi></mrow><annotation encoding="application/x-tex">f:X \to Y</annotation></semantics></math>
+donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>X</mi><annotation encoding="application/x-tex">X</annotation></semantics></math>
+es el espacio de los datos y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Y</mi><annotation encoding="application/x-tex">Y</annotation></semantics></math>
+el de las soluciones. El generador proporciona un conjunto de datos
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">{</mo><mi>x</mi><mo>:</mo><mi>x</mi><mo>∈</mo><mi>X</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\{x : x \in X\}</annotation></semantics></math>,
+mientras que el supervisor asocia a cada dato
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+una respuesta
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo>∈</mo><mi>Y</mi></mrow><annotation encoding="application/x-tex">y \in Y</annotation></semantics></math>.
+La Figura <a href="#fig:GMLE" data-reference-type="ref"
+data-reference="fig:GMLE">1.1</a> presenta de forma esquemática este
+modelo de aprendizaje.</p>
+<figure id="fig:GMLE">
+<img src="images/GMLE.png" />
+<figcaption>Esquema del modelo general de aprendizaje a partir de
+ejemplos</figcaption>
+</figure>
+<p>Generalmente, la función
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>
+depende de un conjunto de parámetros o pesos que se modifican cada vez
+que la máquina ve un nuevo ejemplo;<a href="#fn1" class="footnote-ref"
+id="fnref1" role="doc-noteref"><sup>1</sup></a> de esta forma, estos
+pesos se ajustan hasta obtener las salidas correctas en la máquina de
+aprendizaje. Por lo que podemos pensar a la máquina de aprendizaje como
+la función:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>:</mo><mi>X</mi><mo>×</mo><mi>Θ</mi><mo>→</mo><mi>Y</mi></mrow><annotation encoding="application/x-tex">f: X \times \Theta \to Y</annotation></semantics></math>
+Donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Θ</mi><annotation encoding="application/x-tex">\Theta</annotation></semantics></math>
+puede llamarse el <strong>espacio de hipótesis</strong>; es decir, las
+soluciones al problema deben buscarse en
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Θ</mi><annotation encoding="application/x-tex">\Theta</annotation></semantics></math>,
+de tal forma que el proceso de aprendizaje consista en buscar los
+elementos del espacio
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Θ</mi><annotation encoding="application/x-tex">\Theta</annotation></semantics></math>
+que resuelvan el problema de forma óptima. Entonces, si
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi><mo>∈</mo><mi>Θ</mi></mrow><annotation encoding="application/x-tex">\theta \in \Theta</annotation></semantics></math>
+es una hipótesis, podemos determinar la máquina de aprendizaje como la
+función:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>;</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mover><mi>y</mi><mo accent="true">̂</mo></mover></mrow><annotation encoding="application/x-tex">f(x;\theta) = \hat{y}</annotation></semantics></math>
+El objetivo del proceso aprendizaje es encontrar el conjunto de pesos
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>θ</mi><mo>*</mo></msup><annotation encoding="application/x-tex">\theta^*</annotation></semantics></math>
+que solucione el problema de manera adecuada. Idealmente, buscamos que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>;</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>y</mi></mrow><annotation encoding="application/x-tex">f(x;\theta) = y</annotation></semantics></math>,
+es decir, que la máquina de aprendizaje de exactamente las mismas
+respuestas que el supervisor. Esto no es factible en general. Pero
+podemos encontrar aproximaciones que sean lo más cercanas posibles a las
+respuestas del supervisor.</p>
+<p>Un paso importante de la teoría de aprendizaje estadístico es
+convertir el problema de aprendizaje en un problema de optimización.
+Para esto, debemos definir una función de riesgo (también llamada
+función objetivo)
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mo>:</mo><mi>Θ</mi><mo>→</mo><msup><mi>ℝ</mi><mo>+</mo></msup></mrow><annotation encoding="application/x-tex">R: \Theta \to \mathbb{R}^+</annotation></semantics></math>,
+que sea capaz de decirnos que tan bien una máquina de aprendizaje
+soluciona un problema. De tal forma que nuestro objetivo se definirá
+como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>θ</mi><mo>*</mo></msup><mo>=</mo><mo>arg</mo><munder><mo>min</mo><mrow><mi>θ</mi><mo>∈</mo><mi>Θ</mi></mrow></munder><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo>;</mo><mi>f</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\theta^* = \arg\min_{\theta\in\Theta} R(\theta; f)</annotation></semantics></math>
+La función
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>R</mi><annotation encoding="application/x-tex">R</annotation></semantics></math>
+dependerá del problema de aprendizaje. De forma general usaremos sólo
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">R(\theta)</annotation></semantics></math>
+para denotar esta función. De esta forma, nuestro objetivo será
+encontrar los parámetros que mejor resuelvan el problema a partir de
+minimizar la función de riesgo.</p>
+<p>Antes de pasar a explicar con más a detalle la forma en que podemos
+solucionar los problemas por medio del aprendizaje, pasamos a exponer de
+manera breve los diferentes tipos de aprendizaje, que también se
+desprenden del modelo de aprendizaje a partir de ejemplos. De esta
+forma, nos adentramos al entrenamiento y evaluación donde profundizamos
+en la función de riesgo así como en las capacidades de generalización de
+una máquina de aprendizaje.</p>
+
+<aside id="footnotes" class="footnotes footnotes-end-of-document"
+role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Existen métodos que no están determinados por un
+conjunto de parámetros. Estos suelen llamarse modelos no paramétricos.<a
+href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</aside>
+
+</body>
+</html>

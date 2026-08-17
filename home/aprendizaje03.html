@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Teoría de aprendiza
+estadístico</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Tipos de aprendizaje</h1>
+<p class="date"> </p>
+</header>
+
+
+<p>En la Figura <a href="#fig:GMLE" data-reference-type="ref"
+data-reference="fig:GMLE">1.1</a> se puede ver una línea punteada entre
+la salida
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>
+del supervisor y la máquina de aprendizaje. Lo que esto quiere indicar
+es que la máquina de aprendizaje puede trabajar tanto con información
+supervisada (el supervisor le proporciona algún conocimiento de las
+salidas esperadas) o bien sin tal información. Lo que queda claro es que
+la máquina de aprendizaje necesita de un conjunto de ejemplos para
+aprender; ejemplos que son proporcionados por el generador. A este
+conjunto de ejemplos se le suele llamar <strong>conjunto de
+datos</strong> (en inglés <em>dataset</em>). Los datos en este conjunto
+de datos son esenciales en el aprendizaje, pues dotan a la máquina de
+aprendizaje de ejemplos para que ésta pueda aprender.</p>
+<p>Los ejemplos que se le proporcionan a la máquina de aprendizaje
+pueden contener o no información del supervisor. Cuando contienen esta
+información, los ejemplos dotan a la máquina de información sobre las
+salidas esperadas. Por ejemplo, si la tarea es la clasificación de spam,
+un ejemplo
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(x,y)</annotation></semantics></math>
+contará con un correo electrónico
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+(que puede ser la cadena textual o alguna otra codificación del texto)
+así como una indicación
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">y \in \{0,1\}</annotation></semantics></math>,
+que le indicará a la máquina si
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+es spam (1) o si no lo es (0). Por tanto, durante su proceso de
+aprendizaje, la máquina podrá ver en algunos ejemplos cuáles son las
+salidas esperadas. A partir del conjunto de ejemplos que se proporcionan
+en la tarea, podemos definir los tipos de aprendizaje.</p>
+<div class="mydef">
+<p><strong>Definición 1.2</strong> (Aprendizaje supervisado). <em>El
+aprendizaje supervisado es aquel que se realiza con un conjunto de datos
+que cuenta con una supervisión (solución esperada por cada ejemplo). El
+conjunto de datos supervisado está determinado como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒮</mi><mo>=</mo><mo stretchy="false" form="prefix">{</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>:</mo><mi>x</mi><mo>∈</mo><mi>X</mi><mo>,</mo><mi>y</mi><mo>∈</mo><mi>Y</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\mathcal{S} = \{(x,y) : x \in X, y \in Y\}</annotation></semantics></math>
+donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Y</mi><annotation encoding="application/x-tex">Y</annotation></semantics></math>
+es el conjunto de soluciones o supervisión del problema.</em></p>
+</div>
+<p>Dentro del aprendizaje supervisado la máquina de aprendizaje aprende
+en base a ejemplos que cuentan con la solución esperada de éstos, de tal
+forma que la máquina pueda ver lo que se espera obtener y generalizar
+este conocimiento a datos que no han sido vistos. Dentro del aprendizaje
+supervisado también tenemos dos grandes problemas que resolver. El
+primero de estos problemas refiere a la clasificación.</p>
+<div class="mydef">
+<p><strong>Definición 1.3</strong> (Problema de clasificación). <em>Un
+problema de clasificación es un problema supervisado, donde se busca
+estimar una función
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>:</mo><mi>X</mi><mo>→</mo><mo stretchy="false" form="prefix">{</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo>,</mo><mn>2</mn><mi>.</mi><mi>.</mi><mi>.</mi><mo>,</mo><mi>M</mi><mo stretchy="false" form="postfix">}</mo><mo>⊆</mo><mi>ℕ</mi></mrow><annotation encoding="application/x-tex">f: X \to \{0,1,2...,M\} \subseteq \mathbb{N}</annotation></semantics></math>;
+es decir, clasifica los datos en clases discretas.</em></p>
+</div>
+<p>Como se puede observar, la clasificación se basa en asignar a cada
+dato un valor de clase. Un tipo de clasificación común es la
+clasificación binaria, en donde el conjunto de clases es
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Y</mi><mo>=</mo><mo stretchy="false" form="prefix">{</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">Y = \{0,1\}</annotation></semantics></math>.
+Estas clases pueden representar diferentes cosas; por ejemplo, una
+enfermedad (1) y la ausencia de ésta (0), si el dato representa a un
+animal (1) o no (0), etc.</p>
+<p>El segundo problema dentro del aprendizaje supervisado es el de
+regresión.</p>
+<div class="mydef">
+<p><strong>Definición 1.4</strong> (Problema de regresión). <em>Un
+problema de regresión es un problema supervisado en donde se busca
+estimar una función
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>:</mo><mi>X</mi><mo>→</mo><mi>Y</mi><mo>⊆</mo><msup><mi>ℝ</mi><mi>k</mi></msup></mrow><annotation encoding="application/x-tex">f: X \to Y \subseteq \mathbb{R}^k</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo>,</mo><mn>2</mn><mo>,</mo><mi>.</mi><mi>.</mi><mi>.</mi><mo>,</mo><mi>n</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">k \in \{1,2,...,n\}</annotation></semantics></math>;
+en este caso,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Y</mi><annotation encoding="application/x-tex">Y</annotation></semantics></math>
+toma valores continuos.</em></p>
+</div>
+<p>En la regresión los valores que se asignan a los datos de entrada son
+continuos. Por tanto, no es necesario (de hecho, no es factible) que la
+máquina de aprendizaje observe todos los valores posibles en el
+entrenamiento. Lo que se busca es estimar una función continua que,
+cuando llegué un nuevo dato, pueda asignarle un valor real. Un caso
+particular es cuando se estima un escalar; es decir, se busca una
+función
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>:</mo><mi>X</mi><mo>→</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">f: X \to \mathbb{R}</annotation></semantics></math>.
+Algunos ejemplos de este tipo de problemas es la estimación de precios:
+dada la descripción de un producto por medio de un vector en
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>ℝ</mi><mi>d</mi></msup><annotation encoding="application/x-tex">\mathbb{R}^d</annotation></semantics></math>,
+se busca determinar un precio para éste.</p>
+<p>En contraste con el aprendizaje supervisado, en el aprendizaje
+no-supervisado la máquina de aprendizaje no cuenta con información del
+supervisor para poder aprender. La máquina de aprendizaje sólo podrá
+observar los ejemplos
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>.</p>
+<div class="mydef">
+<p><strong>Definición 1.5</strong> (Aprendizaje no-supervisado). <em>El
+aprendizaje no-supervisado es aquel que no cuenta con una supervisión, y
+se determina por un conjunto de datos dado como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒰</mi><mo>=</mo><mo stretchy="false" form="prefix">{</mo><mi>x</mi><mo>:</mo><mi>x</mi><mo>∈</mo><mi>X</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\mathcal{U} = \{x : x \in X \}</annotation></semantics></math></em></p>
+</div>
+<p>Este tipo de aprendizaje resulta, por lo general, más complejo, pues
+se busca que la máquina pueda encontrar patrones dentro de los datos que
+la lleven a tomar ciertas decisiones sobre estos. Dentro del aprendizaje
+no-supervisado, podemos hablar de los siguientes problemas típicos:</p>
+<ol>
+<li><p><em>Agrupamiento</em> (clustering): En el agrupamiento, como su
+nombre lo dice, la máquina de aprendizaje busca agrupar los datos dentro
+de grupos, conocidos como clústers, a partir de sus similitudes. Los
+elementos dentro de un mismo clúster tendrá características similares, y
+se diferenciarán de los elementos de otros clústers.</p></li>
+<li><p><em>Reducción de dimensionalidad</em>: La reducción de
+dimensionalidad busca comprimir la información de los datos de tal forma
+que se puedan conservar las características más relevantes de éstos. Es
+de especial utilidad para visualizar datos que tengan alta
+dimensionalidad.</p></li>
+</ol>
+<p>Los problemas en que se enfoca el aprendizaje no-supervisado son
+principalmente exploratorios. Debido a la falta de una orientación de
+los resultados esperados, la máquina de aprendizaje debe inferir
+características relevantes de los datos de manera autónoma.</p>
+<p>Otro tipo de aprendizaje importante es el <strong>aprendizaje por
+refuerzo</strong> (<em>reinforcement learning</em>), en donde se busca
+minimizar el costo para que un agente complete una meta. En este caso,
+hay un agente que realizará ciertas acciones que dependen del estado del
+entorno en que el agente se encuentre; el objetivo es realizar las
+acciones que minimicen una función de refuerzo. Otro tipo de aprendizaje
+es el aprendizaje auto-supervisado, que se utiliza en los modelos del
+lenguaje basados en redes neuronales. Estos tipos de aprendizaje no
+serán profundizado aquí.</p>
+<h3 id="modelos-discriminativos-y-generativos">Modelos discriminativos y
+generativos</h3>
+<p>Una distinción común dentro del aprendizaje, que es relevante para
+las redes neuronales, consiste en la diferencia entre los modelos
+discriminativos y modelos generativos. En el caso de las redes
+neuronales, éstas primero surgen como modelos discriminativos (el
+perceptrón, las redes feedforward). Posteriormente se desarrollan
+arquitecturas de redes neuronales generativas, tales como las Redes
+Generativas Adversariales o GANs (<em>Generative Adversarial
+Networks</em>) <span class="citation"
+data-cites="goodfellow2014generative"></span>, los Autoencoders
+variacionales <span class="citation"
+data-cites="kingma2013auto"></span>, los Transformers <span
+class="citation" data-cites="vaswani2017attention"></span> o los modelos
+de difusión <span class="citation"
+data-cites="ho2020denoising"></span>.</p>
+<p>Tanto los modelos discriminativos como los modelos generativos pueden
+considerarse como modelos gráficos. Un <strong>modelo gráfico</strong>
+representa las variables del problema por medio de nodos, y las
+relaciones entre estas variables con aristas. Esencialmente, los modelos
+discriminativos se representan con aristas no dirigidas, mientras que
+los modelos generarivos tienen aristas dirigidas (véase Figrua <a
+href="#fig:GenDiscLearning" data-reference-type="ref"
+data-reference="fig:GenDiscLearning">1.2</a>). Esta caracterización
+determina el tipo de distribuciones que ambos tipos de modelos pueden
+estimar.</p>
+<div id="def:ModDiscriminativo" class="mydef">
+<p><strong>Definición 1.6</strong> (Modelo discriminativo). <em>Un
+modelo discriminativo es un modelo gráfico no dirigido que estima
+distribuciones condicionadas a un vector de observación de la siguiente
+forma:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>Y</mi><mo>=</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><munder><mo>∏</mo><mi>i</mi></munder><mi>ϕ</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>,</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">p(Y=y|x) = \prod_i \phi(x_i, y)</annotation></semantics></math>
+Donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Y</mi><annotation encoding="application/x-tex">Y</annotation></semantics></math>
+es la variable de clases y cada
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>i</mi></msub><annotation encoding="application/x-tex">x_i</annotation></semantics></math>
+es una entrada del vector
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>.
+Cada valor
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϕ</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>,</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\phi(x_i, y)</annotation></semantics></math>
+se conoce como un factor.</em></p>
+</div>
+<p>Los modelos discriminativos suelen aplicarse en la clasificación de
+elementos de entrada (vector de rasgos
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>)
+dentro de una clase
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>
+a partir de discriminar las clases probables. Un ejemplo de modelo
+discriminativo es la regresión logística o el perceptrón. Este tipo de
+modelos contrasta con los modelos generativos.</p>
+<figure id="fig:GenDiscLearning">
+<img src="images/GenDiscLearning.png" />
+<figcaption>Los modelos generativos (como Bayes ingenuo) pueden
+modelarse como una gráfica que se dirige de las categorías o clases a
+los ejemplos; los modelos discriminativos (como el perceptrón) están
+determinados por una gráfica no dirigida.</figcaption>
+</figure>
+<div id="def:ModGenerativo" class="mydef">
+<p><strong>Definición 1.7</strong> (Modelo generativo). <em>Un modelo
+generativo es un modelo gráfico dirigido que estima distribuciones de
+datos
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+condicionadas a una clase
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>
+de la siguiente forma:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo>,</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="prefix">|</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><munder><mo>∏</mo><mi>i</mi></munder><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">|</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">p(y,x) = p(x|y)p(y) = \prod_i p(x_i|y)p(y)</annotation></semantics></math>
+Donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mi>i</mi></msub><annotation encoding="application/x-tex">x_i</annotation></semantics></math>
+son las entradas del vector
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>.</em></p>
+</div>
+<p>Tanto en la Definición <a href="#def:ModDiscriminativo"
+data-reference-type="ref" data-reference="def:ModDiscriminativo">1.6</a>
+y <a href="#def:ModGenerativo" data-reference-type="ref"
+data-reference="def:ModGenerativo">1.7</a>, los casos de factorización
+son excepcionales. En los modelos generativos se asume que los datos
+observados
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+fueron generados por una clase
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>.
+De tal forma que se puede hacer una clasificación basada en la clase que
+con mayor probabilidad genera
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>.
+Un modelo generativo típico es el de Bayes naïve o ingenuo (Figura <a
+href="#fig:GenDiscLearning" data-reference-type="ref"
+data-reference="fig:GenDiscLearning">1.2</a>).</p>
+<p>Dentro del aprendizaje profundo se tienen modelos tanto de índole
+discriminativo como generativo. En este texto abordamos en mayor
+amplitud los modelos discriminativos. Los modelos generativos tienen
+particularidades que no profundizaremos. Algunas redes generativas son
+los autoencoders variacionales o las máquinas de Boltzman. También
+existen modelos híbridos, que combinan módulos generativos con
+discriminativos; tal es el caso de las Redes Generativas Adversariales o
+GANs.</p>
+
+</body>
+</html>

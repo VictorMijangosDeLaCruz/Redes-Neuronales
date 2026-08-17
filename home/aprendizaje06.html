@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Teoría de aprendiza
+estadístico</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Regresión lineal</h1>
+<p class="date"> </p>
+</header>
+
+
+
+
+
+<p>Tomaremos, como primer ejemplo concreto de un modelo de aprendizaje
+automático, a la regresión lineal. La regresión lineal es un modelo,
+como su nombre lo dice, lineal; es decir, busca aproximar un conjunto de
+datos por medio de una función lineal: un hiperplano parametrizado por
+un conjunto de pesos
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mo>∈</mo><msup><mi>ℝ</mi><mi>d</mi></msup></mrow><annotation encoding="application/x-tex">w \in \mathbb{R}^d</annotation></semantics></math>
+y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo>∈</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">b \in \mathbb{R}</annotation></semantics></math>.</p>
+<p>Sea
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒮</mi><mo>=</mo><mo stretchy="false" form="prefix">{</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>:</mo><mi>x</mi><mo>∈</mo><msup><mi>ℝ</mi><mi>d</mi></msup><mo>,</mo><mi>y</mi><mo>∈</mo><mi>Y</mi><mo>⊆</mo><mi>ℝ</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\mathcal{S} = \{(x,y) : x \in \mathbb{R}^d, y \in Y \subseteq \mathbb{R} \}</annotation></semantics></math>
+un conjunto de datos supervisado. Como mencionamos en la Sección <a
+href="#sec:ProblemTypes" data-reference-type="ref"
+data-reference="sec:ProblemTypes">1.3</a>, el problema de regresión
+asume que los valores a predecir pertenecen a un conjunto continuo.
+Comenzamos por asumir que se trata de un intervalo de los números
+reales. En los problemas de regresión, estimamos un valor esperado
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>
+condicionado a un valor de entrada
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>.
+En particular, en la regresión lineal se asume que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Y</mi><mo>∼</mo><mi>N</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>μ</mi><mo>,</mo><msup><mi>σ</mi><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">Y \sim N(\mu, \sigma^2)</annotation></semantics></math>
+(los valores a predecir tienen una distribución normal) con una media
+lineal; esto es:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mo>=</mo><mi>𝔼</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">[</mo><mi>Y</mi><mo stretchy="false" form="prefix">|</mo><mi>x</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">]</mo><mo>=</mo><mi>w</mi><mi>x</mi><mo>+</mo><mi>b</mi></mrow><annotation encoding="application/x-tex">\mu = \mathbb{E}\big[ Y | x \big]= wx + b</annotation></semantics></math>
+Es decir, la esperanza condicional de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Y</mi><annotation encoding="application/x-tex">Y</annotation></semantics></math>
+dado el dato
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+es una función lineal dependiente de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mo>∈</mo><msup><mi>ℝ</mi><mi>d</mi></msup></mrow><annotation encoding="application/x-tex">w \in \mathbb{R}^d</annotation></semantics></math>
+y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo>∈</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">b \in \mathbb{R}</annotation></semantics></math>.
+Con base en esto, podemos definir la función objetivo,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo>,</mo><mi>b</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">R(w,b)</annotation></semantics></math>,
+que nos permita encontrar los parámetros
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>
+y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>
+que mejor aproximen la media. Para poder determinar una función objetiva
+adecuada, demostramos el siguiente resultado.</p>
+<div class="theo">
+<p><strong>Teorema 1.3</strong>. <em>Sea
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒮</mi><mo>=</mo><mo stretchy="false" form="prefix">{</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>:</mo><mi>x</mi><mo>∈</mo><msup><mi>ℝ</mi><mi>d</mi></msup><mo>,</mo><mi>y</mi><mo>∈</mo><mi>Y</mi><mo>⊆</mo><mi>ℝ</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\mathcal{S} = \{(x,y) : x \in \mathbb{R}^d, y \in Y \subseteq \mathbb{R} \}</annotation></semantics></math>
+un conjunto de datos en un problema de regresión lineal. Asúmase que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Y</mi><annotation encoding="application/x-tex">Y</annotation></semantics></math>
+tiene distribución normal con media
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>w</mi><mi>x</mi><mo>+</mo><mi>b</mi></mrow><annotation encoding="application/x-tex">f(x) = wx+b</annotation></semantics></math>.
+Entonces:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>arg</mo><munder><mo>min</mo><mrow><mi>w</mi><mo>,</mo><mi>b</mi></mrow></munder><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo>,</mo><mi>b</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>arg</mo><munder><mo>min</mo><mrow><mi>w</mi><mo>,</mo><mi>b</mi></mrow></munder><mo>−</mo><munder><mo>∑</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow></munder><mo>ln</mo><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>arg</mo><munder><mo>min</mo><mrow><mi>w</mi><mo>,</mo><mi>b</mi></mrow></munder><mfrac><mn>1</mn><mn>2</mn></mfrac><munder><mo>∑</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow></munder><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><mi>y</mi><mo>−</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><msup><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">\arg\min_{w,b} R(w,b) = \arg\min_{w,b} - \sum_{(x,y)} \ln p(y|x) = \arg\min_{w,b} \frac{1}{2} \sum_{(x,y)} \big( y -f(x) \big)^2</annotation></semantics></math></em></p>
+</div>
+<div class="proof">
+<p><em>Proof.</em> Dado que se asume una media lineal
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mo>=</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>w</mi><mi>x</mi><mo>+</mo><mi>b</mi></mrow><annotation encoding="application/x-tex">\mu = f(x) = wx +b</annotation></semantics></math>,
+tenemos que:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><mo>−</mo><munder><mo>∑</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow></munder><mo>ln</mo><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mo>−</mo><munder><mo>∑</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow></munder><mo>ln</mo><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">(</mo><mfrac><mn>1</mn><msqrt><mrow><mn>2</mn><mi>π</mi><msup><mi>σ</mi><mn>2</mn></msup></mrow></msqrt></mfrac><msup><mi>e</mi><mrow><mo>−</mo><mfrac><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo>−</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mrow><mn>2</mn><msup><mi>σ</mi><mn>2</mn></msup></mrow></mfrac></mrow></msup><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">)</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><munder><mo>∑</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow></munder><mo>ln</mo><msqrt><mrow><mn>2</mn><mi>π</mi><msup><mi>σ</mi><mn>2</mn></msup></mrow></msqrt><mo>+</mo><mfrac><mn>1</mn><mrow><mn>2</mn><msup><mi>σ</mi><mn>2</mn></msup></mrow></mfrac><munder><mo>∑</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow></munder><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo>−</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+        - \sum_{(x,y)} \ln p(y|x) &amp;= -\sum_{(x,y)} \ln\Big( \frac{1}{\sqrt{2\pi \sigma^2}}e^{-\frac{(y-f(x))^2}{2\sigma^2}} \Big)\\
+        &amp;= \sum_{(x,y)}\ln \sqrt{2\pi \sigma^2} + \frac{1}{2 \sigma^2} \sum_{(x,y)} (y-f(x))^2 \\
+    
+\end{aligned}</annotation></semantics></math> Ya que el término
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∑</mo><mi>x</mi></msub><mo>ln</mo><msqrt><mrow><mn>2</mn><mi>π</mi><msup><mi>σ</mi><mn>2</mn></msup></mrow></msqrt></mrow><annotation encoding="application/x-tex">\sum_x \ln \sqrt{2\pi \sigma^2}</annotation></semantics></math>
+es constante, e ignorando
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>σ</mi><mn>2</mn></msup><annotation encoding="application/x-tex">\sigma^2</annotation></semantics></math>,
+tenemos que:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>arg</mo><munder><mo>min</mo><mrow><mi>w</mi><mo>,</mo><mi>b</mi></mrow></munder><mo>−</mo><munder><mo>∑</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow></munder><mo>ln</mo><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="prefix">|</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>arg</mo><munder><mo>min</mo><mrow><mi>w</mi><mo>,</mo><mi>b</mi></mrow></munder><mfrac><mn>1</mn><mn>2</mn></mfrac><munder><mo>∑</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow></munder><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo>−</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">\arg\min_{w,b} - \sum_{(x,y)} \ln p(y|x) = \arg\min_{w,b} \frac{1}{2} \sum_{(x,y)} (y-f(x))^2</annotation></semantics></math> ◻</p>
+</div>
+<p>Este resultado señala que para encontrar la media que aproxime mejor
+la distribución de los datos basta minimizar la función de error
+cuadrático. Más aún, podemos notar que al encontrar la media
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f(x)</annotation></semantics></math>
+que minimiza la función objetivo, también minimizamos la varianza, la
+cual está implícita en la función objetivo del error cuadrático. Ahora
+podemos definir el método de regresión lineal.</p>
+<div id="def:RegresionLineal" class="mydef">
+<p><strong>Definición 1.37</strong> (Regresión lineal). <em>El método de
+regresión lineal sobre un conjunto de datos
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(x,y)</annotation></semantics></math>
+está dado por una función
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>:</mo><mi>X</mi><mo>→</mo><mi>Y</mi></mrow><annotation encoding="application/x-tex">f:X \to Y</annotation></semantics></math>
+definida como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>w</mi><mi>x</mi><mo>+</mo><mi>b</mi></mrow><annotation encoding="application/x-tex">f(x) = wx +b</annotation></semantics></math>
+Y cuya función objetivo está dada por el error cuadrático medio:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo>,</mo><mi>b</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><munder><mo>∑</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow></munder><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo>−</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">R(w,b) = \frac{1}{2} \sum_{(x,y)} (y-f(x))^2</annotation></semantics></math></em></p>
+</div>
+<p>Existen otras funciones objetivo que pueden llevar hacia la solución
+del problema de regresión. En particular, también se puede definir la
+función objetivo basada en el valor absoluto:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo>,</mo><mi>b</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><mn>1</mn><mi>n</mi></mfrac><munder><mo>∑</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow></munder><mrow><mo stretchy="true" form="prefix">|</mo><mi>y</mi><mo>−</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">|</mo></mrow></mrow><annotation encoding="application/x-tex">R(w,b) = \frac{1}{n} \sum_{(x,y)} |y-f(x)|</annotation></semantics></math>
+A esta función objetivo se le conoce como error absoluto medio (MAE del
+inglés <em>Mean Absolute Error</em>). Sin embargo, es común utilizar el
+error cuadrático en tanto esta función objetivo tiene derivadas en todos
+los puntos. Con base en esta función objetivo podemos observar que una
+solución analítica está dada en la siguiente proposición.</p>
+<div class="prop">
+<p><strong>Proposición 1.3</strong>. <em>Dado un problema de regresión
+con matriz de datos
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>X</mi><annotation encoding="application/x-tex">X</annotation></semantics></math>,
+donde a cada dato se le ha concatenado un 1
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>x</mi><mn>1</mn></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>x</mi><mn>2</mn></msub></mtd><mtd columnalign="center" style="text-align: center"><mi>⋯</mi></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>x</mi><mi>d</mi></msub></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow><mo>∈</mo><msup><mi>ℝ</mi><mrow><mi>d</mi><mo>+</mo><mn>1</mn></mrow></msup></mrow><annotation encoding="application/x-tex">x = \begin{pmatrix}
+    x_1 &amp; x_2 &amp; \cdots &amp; x_d &amp; 1
+\end{pmatrix} \in \mathbb{R}^{d+1}</annotation></semantics></math>, y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Y</mi><annotation encoding="application/x-tex">Y</annotation></semantics></math>
+es el vector de valores a predecir, los valores que minimizan la función
+objetivo de error cuadrático,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo>,</mo><mi>b</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><msub><mo>∑</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow></msub><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo>−</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">R(w,b) = \frac{1}{2} \sum_{(x,y)} (y-f(x))^2</annotation></semantics></math>,
+en la regresión lineal están dados como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo>,</mo><mi>b</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>X</mi><mi>T</mi></msup><mi>X</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo>−</mo><mn>1</mn></mrow></msup><msup><mi>X</mi><mi>T</mi></msup><mi>Y</mi></mrow><annotation encoding="application/x-tex">(w, b) = (X^T X)^{-1} X^TY</annotation></semantics></math>
+donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>X</mi><annotation encoding="application/x-tex">X</annotation></semantics></math>
+es la matriz de datos y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Y</mi><annotation encoding="application/x-tex">Y</annotation></semantics></math>
+un vector con las clases de cada ejemplo como entradas.</em></p>
+</div>
+<div class="proof">
+<p><em>Proof.</em> Ejercicio. ◻</p>
+</div>
+<p>El concatenar un 1 a cada dato se hace para que la resolución del
+problema se de en un solo paso. Pero pueden estimarse
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>
+y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>
+de forma separada. Cabe mencionar que la regresión lineal también puede
+resolverse por medio del método de descenso por gradiente que se
+revisará en la Sección <a href="#sec:GradientDescent"
+data-reference-type="ref"
+data-reference="sec:GradientDescent">[sec:GradientDescent]</a>.</p>
+<div id="tab:EvalEjReg" class="ex">
+<p><strong>Ejemplo 1.7</strong>. <em>Supongamos que tenemos el problema
+de predecir el precio de una casa dependiendo de los metros cuadrados de
+ésta. Formalmente, tenemos datos
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(x,y)</annotation></semantics></math>
+donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>∈</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">x \in \mathbb{R}</annotation></semantics></math>
+son los metros cuadrados e
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo>∈</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">y \in \mathbb{R}</annotation></semantics></math>
+son los precios. Los datos de entrenamiento se muestran en el Cuadro <a
+href="#tab:ejemploReg" data-reference-type="ref"
+data-reference="tab:ejemploReg">1.6</a>.</em></p>
+<div id="tab:ejemploReg">
+<table>
+<caption><em>Datos de casas y sus precios</em></caption>
+<thead>
+<tr class="header">
+<th style="text-align: center;"><em><strong>Núm. casa</strong></em></th>
+<th
+style="text-align: center;"><em><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>𝐦</mi><mn>𝟐</mn></msup><annotation encoding="application/x-tex">\mathbf{m^2}</annotation></semantics></math></em></th>
+<th style="text-align: center;"><em><strong>Precio
+(millones)</strong></em></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"><em>0</em></td>
+<td style="text-align: center;"><em>10</em></td>
+<td style="text-align: center;"><em>3</em></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><em>1</em></td>
+<td style="text-align: center;"><em>12</em></td>
+<td style="text-align: center;"><em>4</em></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><em>2</em></td>
+<td style="text-align: center;"><em>12</em></td>
+<td style="text-align: center;"><em>5</em></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><em>3</em></td>
+<td style="text-align: center;"><em>15</em></td>
+<td style="text-align: center;"><em>7</em></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><em>4</em></td>
+<td style="text-align: center;"><em>18</em></td>
+<td style="text-align: center;"><em>10</em></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><em>5</em></td>
+<td style="text-align: center;"><em>18</em></td>
+<td style="text-align: center;"><em>9</em></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><em>6</em></td>
+<td style="text-align: center;"><em>20</em></td>
+<td style="text-align: center;"><em>15</em></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><em>7</em></td>
+<td style="text-align: center;"><em>25</em></td>
+<td style="text-align: center;"><em>20</em></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><em>8</em></td>
+<td style="text-align: center;"><em>30</em></td>
+<td style="text-align: center;"><em>20</em></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><em>9</em></td>
+<td style="text-align: center;"><em>45</em></td>
+<td style="text-align: center;"><em>50</em></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><em>De igual forma, los datos se pueden visualizar en la Figura <a
+href="#fig:EjemploRegresion" data-reference-type="ref"
+data-reference="fig:EjemploRegresion">1.12</a> (a), vemos que existe
+cierta dependencia lineal. Para encontrar la recta que mejor aproxima
+los datos debemos solucionar el problema de regresión lineal. Para esto,
+primero generaremos una matriz con los datos de metros cuadrados,
+agregando un 1 a cada entrada. Si llamamos a esta matriz
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>X</mi><annotation encoding="application/x-tex">X</annotation></semantics></math>,
+podemos observar que:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>X</mi><mi>T</mi></msup><mi>X</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>5211</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>205</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>205</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>10</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">X^T X = \begin{pmatrix}
+    5211 &amp; 205 \\
+    205 &amp; 10 
+\end{pmatrix}</annotation></semantics></math> Más aún, podemos obtener
+la inversa de este producto obteniendo la matriz:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>X</mi><mi>T</mi></msup><mi>X</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo>−</mo><mn>1</mn></mrow></msup><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>0.0009</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>0.0203</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>0.0203</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0.516</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">(X^T X)^{-1} = \begin{pmatrix}
+    0.0009 &amp; -0.0203 \\
+    -0.0203 &amp; 0.516 
+\end{pmatrix}</annotation></semantics></math></em></p>
+<figure id="fig:EjemploRegresion">
+<figure>
+<img src="images/EjemploRegresion.png" />
+<figcaption><em>Datos del ejemplo de regresión</em></figcaption>
+</figure>
+<figure>
+<img src="images/EjRegLine.png" />
+<figcaption><em>Recta estimada</em></figcaption>
+</figure>
+<figcaption><em>Ejemplo de aplicación de regresión a un conjunto de
+datos y estimación del modelo lineal</em></figcaption>
+</figure>
+<p><em>Recordemos que la solución al problema de regresión está dado
+como
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>X</mi><mi>T</mi></msup><mi>X</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo>−</mo><mn>1</mn></mrow></msup><msup><mi>X</mi><mi>T</mi></msup><mi>Y</mi></mrow><annotation encoding="application/x-tex">(X^TX)^{-1}X^TY</annotation></semantics></math>.
+Sabiendo que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>X</mi><mi>T</mi></msup><mi>Y</mi></mrow><annotation encoding="application/x-tex">X^T Y</annotation></semantics></math>
+es el vector
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>3985</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>143</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\begin{pmatrix} 3985  &amp; 143 \end{pmatrix}</annotation></semantics></math>
+observamos que:</em></p>
+<p><em><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>X</mi><mi>T</mi></msup><mi>X</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo>−</mo><mn>1</mn></mrow></msup><msup><mi>X</mi><mi>T</mi></msup><mi>Y</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>0.0009</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>0.0203</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>0.0203</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>0.516</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>4235</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>143</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>1.29</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>12.19</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">(X^T X)^{-1}X^T Y = \begin{pmatrix}
+    0.0009 &amp; -0.0203 \\
+    -0.0203 &amp; 0.516 
+\end{pmatrix} \begin{pmatrix}
+    4235 \\
+    143
+\end{pmatrix} = \begin{pmatrix}
+     1.29 \\
+    -12.19 \end{pmatrix}</annotation></semantics></math></em></p>
+<p><em>En este caso, la última entrada del vector resultante corresponde
+a
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>.
+Por lo que tenemos que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mo>=</mo><mn>1.29</mn></mrow><annotation encoding="application/x-tex">w = 1.29</annotation></semantics></math>
+y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo>=</mo><mo>−</mo><mn>12.19</mn></mrow><annotation encoding="application/x-tex">b = -12.19</annotation></semantics></math>.
+La función de regresión lineal obtenida está dada como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>1.29</mn><mi>x</mi><mo>−</mo><mn>12.19</mn></mrow><annotation encoding="application/x-tex">f(x) = 1.29x - 12.19</annotation></semantics></math>
+La recta definida por esta función se puede observar en la Figura <a
+href="#fig:EjemploRegresion" data-reference-type="ref"
+data-reference="fig:EjemploRegresion">1.12</a> (b). Esta recta es la
+recta que minimiza la distancia promedio entre los puntos del conjunto
+de datos. Si probamos el modelo obtenido a los datos obtenemos los
+resultados obtenidos en el Cuadro <a href="#tab:ejemploRegResults"
+data-reference-type="ref"
+data-reference="tab:ejemploRegResults">1.7</a>.</em></p>
+<div id="tab:ejemploRegResults">
+<table>
+<caption><em>Resultados de aplicar la predicción del modelo de regresión
+lineal</em></caption>
+<thead>
+<tr class="header">
+<th style="text-align: center;"><em><strong>Núm. casa</strong></em></th>
+<th
+style="text-align: center;"><em><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>𝐦</mi><mn>𝟐</mn></msup><annotation encoding="application/x-tex">\mathbf{m^2}</annotation></semantics></math></em></th>
+<th style="text-align: center;"><em><strong>Precio
+(millones)</strong></em></th>
+<th
+style="text-align: center;"><em><strong>Predicción</strong></em></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"><em>0</em></td>
+<td style="text-align: center;"><em>10</em></td>
+<td style="text-align: center;"><em>3</em></td>
+<td style="text-align: center;"><em>-0.01</em></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><em>1</em></td>
+<td style="text-align: center;"><em>12</em></td>
+<td style="text-align: center;"><em>4</em></td>
+<td style="text-align: center;"><em>2.84</em></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><em>2</em></td>
+<td style="text-align: center;"><em>12</em></td>
+<td style="text-align: center;"><em>5</em></td>
+<td style="text-align: center;"><em>2.84</em></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><em>3</em></td>
+<td style="text-align: center;"><em>15</em></td>
+<td style="text-align: center;"><em>7</em></td>
+<td style="text-align: center;"><em>7.14</em></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><em>4</em></td>
+<td style="text-align: center;"><em>18</em></td>
+<td style="text-align: center;"><em>10</em></td>
+<td style="text-align: center;"><em>11.4</em></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><em>5</em></td>
+<td style="text-align: center;"><em>18</em></td>
+<td style="text-align: center;"><em>9</em></td>
+<td style="text-align: center;"><em>11.4</em></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><em>6</em></td>
+<td style="text-align: center;"><em>20</em></td>
+<td style="text-align: center;"><em>15</em></td>
+<td style="text-align: center;"><em>14.3</em></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><em>7</em></td>
+<td style="text-align: center;"><em>25</em></td>
+<td style="text-align: center;"><em>20</em></td>
+<td style="text-align: center;"><em>21.4</em></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><em>8</em></td>
+<td style="text-align: center;"><em>30</em></td>
+<td style="text-align: center;"><em>20</em></td>
+<td style="text-align: center;"><em>28.6</em></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><em>9</em></td>
+<td style="text-align: center;"><em>45</em></td>
+<td style="text-align: center;"><em>50</em></td>
+<td style="text-align: center;"><em>42.9</em></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><em>Los datos del cuadro anterior no representan una evaluación, pues
+la evaluación debe realizarse sobre un conjunto de datos que no ha sido
+observado durante el entrenamiento. Tomemos el ejemplo de los datos en
+el Cuadro <a href="#tab:EvalEjReg" data-reference-type="ref"
+data-reference="tab:EvalEjReg">1.7</a>.</em></p>
+<div id="tab:EvalEjReg">
+<table>
+<caption><em>Evaluación del modelo de regresión</em></caption>
+<thead>
+<tr class="header">
+<th style="text-align: center;"><em><strong>Núm. casa</strong></em></th>
+<th
+style="text-align: center;"><em><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>𝐦</mi><mn>𝟐</mn></msup><annotation encoding="application/x-tex">\mathbf{m^2}</annotation></semantics></math></em></th>
+<th style="text-align: center;"><em><strong>Precio</strong></em></th>
+<th
+style="text-align: center;"><em><strong>Predicción</strong></em></th>
+<th style="text-align: center;"><em><strong>Error</strong>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix" mathvariant="bold">(</mo><mi>𝐲</mi><mo mathvariant="bold">−</mo><mi>𝐟</mi><mrow><mo stretchy="true" form="prefix" mathvariant="bold">(</mo><mi>𝐱</mi><mo stretchy="true" form="postfix" mathvariant="bold">)</mo></mrow><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix" mathvariant="bold">)</mo></mrow><annotation encoding="application/x-tex">\mathbf{\big(y-f(x)\big)}</annotation></semantics></math></em></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"><em>0</em></td>
+<td style="text-align: center;"><em>7</em></td>
+<td style="text-align: center;"><em>2</em></td>
+<td style="text-align: center;"><em>-3.1</em></td>
+<td style="text-align: center;"><em>5.1</em></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><em>1</em></td>
+<td style="text-align: center;"><em>15</em></td>
+<td style="text-align: center;"><em>7</em></td>
+<td style="text-align: center;"><em>7.19</em></td>
+<td style="text-align: center;"><em>-0.19</em></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><em>2</em></td>
+<td style="text-align: center;"><em>60</em></td>
+<td style="text-align: center;"><em>70</em></td>
+<td style="text-align: center;"><em>65.3</em></td>
+<td style="text-align: center;"><em>-4.7</em></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><em>A partir de estos datos podemos calcular el error cuadrático
+medio y el coeficiente
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>R</mi><mn>2</mn></msup><annotation encoding="application/x-tex">R^2</annotation></semantics></math>.
+Para el error cuadrático medio tenemos:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mi>S</mi><mi>E</mi><mo>=</mo><mfrac><mn>1</mn><mn>3</mn></mfrac><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><mn>5.1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mo>+</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mn>0.19</mn><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mo>+</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mn>4.7</mn><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo><mo>≈</mo><mn>16.04</mn></mrow><annotation encoding="application/x-tex">MSE = \frac{1}{3} \big( (5.1)^2 + (-0.19)^2 + (-4.7)^2 \big) \approx 16.04</annotation></semantics></math>
+Para el coeficiente
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>R</mi><mn>2</mn></msup><annotation encoding="application/x-tex">R^2</annotation></semantics></math>
+debemos obtener la media de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>
+sobre los datos de evaluación; ésta es
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>μ</mi><mi>y</mi></msub><mo>=</mo><mfrac><mn>1</mn><mn>3</mn></mfrac><mrow><mo stretchy="true" form="prefix">(</mo><mn>2</mn><mo>+</mo><mn>7</mn><mo>+</mo><mn>70</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>≈</mo><mn>26.3</mn></mrow><annotation encoding="application/x-tex">\mu_y = \frac{1}{3}(2+7+70) \approx 26.3</annotation></semantics></math>.
+De esta forma obtenemos:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>R</mi><mn>2</mn></msup><mo>=</mo><mn>1</mn><mo>−</mo><mfrac><mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><mn>5.1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mo>+</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mn>0.19</mn><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mo>+</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mn>4.7</mn><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup></mrow><mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><mn>2</mn><mo>−</mo><mn>26.3</mn><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mo>+</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><mn>7</mn><mo>−</mo><mn>26.3</mn><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mo>+</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><mn>70</mn><mo>−</mo><mn>26.3</mn><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup></mrow></mfrac><mo>≈</mo><mn>0.982</mn></mrow><annotation encoding="application/x-tex">R^2 = 1- \frac{(5.1)^2 + (-0.19)^2 + (-4.7)^2}{(2-26.3)^2 + (7-26.3)^2 + (70-26.3)^2} \approx0.982</annotation></semantics></math>
+Notamos que el coeficiente
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>R</mi><mn>2</mn></msup><annotation encoding="application/x-tex">R^2</annotation></semantics></math>
+es cercano a 1, lo que nos indica que el modelo lo hace bien. De igual
+forma, el error cuadrático medio nos muestra que la media del error no
+es demasiado grande.</em></p>
+</div>
+
+</body>
+</html>
