@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Perceptrón</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Aprendizaje en el Perceptrón</h1>
+<p class="date"> </p>
+</header>
+
+<p>Una vez explicado el funcionamiento del perceptrón, nos preguntamos
+cómo podemos estimar los pesos
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mo>∈</mo><msup><mi>ℝ</mi><mi>d</mi></msup></mrow><annotation encoding="application/x-tex">w \in \mathbb{R}^d</annotation></semantics></math>
+y el bias
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo>∈</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">b \in \mathbb{R}</annotation></semantics></math>
+para que realicen una clasificación correcta dado un conjunto de datos
+supervisados
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒮</mi><mo>=</mo><mo stretchy="false" form="prefix">{</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>:</mo><mi>x</mi><mo>∈</mo><msup><mi>ℝ</mi><mi>d</mi></msup><mo>,</mo><mi>y</mi><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\mathcal{S} = \{(x,y) : x \in \mathbb{R}^d, y\in\{0,1\}\}</annotation></semantics></math>.
+Denotemos a los pesos como
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi><mo>=</mo><mo stretchy="false" form="prefix">{</mo><mi>w</mi><mo>∈</mo><msup><mi>ℝ</mi><mi>d</mi></msup><mo>,</mo><mi>b</mi><mo>∈</mo><mi>ℝ</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\theta = \{w \in \mathbb{R}^d, b \in \mathbb{R}\}</annotation></semantics></math>.
+Supongamos que tenemos un perceptrón
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>;</mo><mi>θ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f(x; \theta)</annotation></semantics></math>
+que depende de un conjunto de pesos específico. Sabiendo que este
+perceptrón debe clasificar un conjunto de datos en dos clases, 0 y 1,
+podemos observar que sea realizan dos tipos de errores:</p>
+<ul>
+<li><p>Un tipo de error se da cuando se predice
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">f(x) = 1</annotation></semantics></math>,
+pero la clase real es
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">y=0</annotation></semantics></math>;
+en este caso, notando que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>y</mi><mo>=</mo><mn>1</mn><mo>−</mo><mn>0</mn><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">f(x) - y = 1-0 = 1</annotation></semantics></math>,
+tenemos que disminuir los pesos usando un factor de cambio (denotado
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Δ</mi><mi>w</mi></mrow><annotation encoding="application/x-tex">\Delta w</annotation></semantics></math>)
+negativo:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Δ</mi><mi>w</mi><mo>=</mo><mo>−</mo><mn>1</mn><mo>=</mo><mo>−</mo><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>y</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Delta w = -1 = - \big( f(x) - y \big)</annotation></semantics></math></p></li>
+<li><p>Otro error se da cuando se predice
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">f(x) = 0</annotation></semantics></math>,
+pero la clase real es
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">y=1</annotation></semantics></math>;
+en este caso, notando que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>y</mi><mo>=</mo><mn>0</mn><mo>−</mo><mn>1</mn><mo>=</mo><mo>−</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">f(x)-y=0-1 =-1</annotation></semantics></math>,
+tenemos que aumentar los pesos usando un factor de cambio positivo:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Δ</mi><mi>w</mi><mo>=</mo><mo>+</mo><mn>1</mn><mo>=</mo><mo>−</mo><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>y</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Delta w = +1 = - \big( f(x) - y \big)</annotation></semantics></math></p></li>
+</ul>
+<p>Es decir, podemos expresar el factor de cambio de los pesos con base
+en el mismo error
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>y</mi></mrow><annotation encoding="application/x-tex">f(x) - y</annotation></semantics></math>.
+Con base en esta diferencia, podemos proponer que el factor de cambio
+sobre los pesos sea:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Δ</mi><mi>w</mi><mo>=</mo><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>y</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Delta w = \big( f(x) - y \big)</annotation></semantics></math>
+Este factor de cambio modificará los pesos del perceptrón de forma
+iterativa hasta que el perceptrón clasifique los datos de manera
+correcta. En particular, llamaremos <strong>época</strong> a cada
+proceso del algoritmo en que los pesos se actualizan después de observar
+todos los datos del conjunto de datos. Se debe notar que si hay ciertos
+estímulos que son 0 o que tiene valores pequeños, entonces estos valores
+tendrán poca o nula influencia en la decisión del perceptrón. Por
+ejemplo, si el estímulo es 0, ese peso no debe alterarse. Por tanto,
+podemos modificar cada uno de los pesos de las conexiones tomando en
+cuenta el estímulo de entrada:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Δ</mi><msub><mi>w</mi><mi>i</mi></msub><mo>=</mo><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>y</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo><msub><mi>x</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">\Delta w_i = \big( f(x) - y \big) x_i</annotation></semantics></math>
+Para moderar el factor de cambio, podemos multiplicar por un
+hiperparámetro,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>η</mi><mo>∈</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">\eta \in \mathbb{R}</annotation></semantics></math>,
+conocido como <strong>tasa de aprendizaje</strong>. Esta tasa de
+aprendizaje se encarga de controlar la magnitud del cambio en cada época
+en que se modifican los pesos del perceptrón. De tal forma que tenemos
+la regla para actualización de pesos del perceptrón:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>w</mi><mi>i</mi></msub><mo>←</mo><msub><mi>w</mi><mi>i</mi></msub><mo>−</mo><mi>η</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>y</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo><msub><mi>x</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">w_i \leftarrow w_i - \eta \big( f(x) - y \big) x_i</annotation></semantics></math>
+Es decir, cada peso
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>w</mi><mi>i</mi></msub><annotation encoding="application/x-tex">w_i</annotation></semantics></math>
+se modifica restando al peso anterior el factor de cambio
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>η</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>y</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo><msub><mi>x</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">\eta \big( f(x) - y \big) x_i</annotation></semantics></math>.
+En el caso del bias, ya que podemos considerarlo como una entrada con
+valor 1 (Figura <a href="#fig:perceptron" data-reference-type="ref"
+data-reference="fig:perceptron">1.2</a>), éste se actualizará como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo>←</mo><mi>b</mi><mo>−</mo><mi>η</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>y</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">b \leftarrow b - \eta \big( f(x) - y \big)</annotation></semantics></math>
+El proceso de actualización de los pesos se repetirá hasta conseguir la
+clasificación deseada, o bien hasta que se complete un número de épocas
+dado. Esto último porque no siempre podemos garantizar que el perceptrón
+clasifique de manera correcta los datos.</p>
+<p>Con base en esta regla de actualización de los pesos, podemos
+proponer el algoritmo de aprendizaje en el perceptrón. Este algoritmo
+tomará como entradas los siguientes elementos:</p>
+<ul>
+<li><p>El conjunto de datos de entrenamiento
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒮</mi><mo>=</mo><mo stretchy="false" form="prefix">{</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>:</mo><msup><mi>ℝ</mi><mi>d</mi></msup><mo>,</mo><mi>y</mi><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\mathcal{S} = \{(x,y) : \mathbb{R}^d, y\in\{0,1\}\}</annotation></semantics></math>.</p></li>
+<li><p>Un número máximo de épocas
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>.</p></li>
+<li><p>La tasa de aprendizaje
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>η</mi><annotation encoding="application/x-tex">\eta</annotation></semantics></math>.</p></li>
+</ul>
+<p>Tanto el número de épocas
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>,
+como la tasa de aprendizaje
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>η</mi><annotation encoding="application/x-tex">\eta</annotation></semantics></math>
+son <strong>hiperparámetros</strong>, es decir, deben ser establecidos
+por el programador del algoritmo. El algoritmo se divide en dos pasos:
+1) el paso forward donde predice las clases en base a los pesos con los
+que cuenta; y 2) el paso backward en donde estima el error y actualiza
+los pesos. Si el error es 0 (si ha clasificado todos los puntos
+correctamente) el algoritmo se detiene, de lo contrario continúa
+actualizando los pesos hasta acabar las épocas. El algoritmo se describe
+a continuación:</p>
+<div class="algorithmic">
+<p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mo>,</mo><mi>b</mi><mo>←</mo></mrow><annotation encoding="application/x-tex">w,b \leftarrow</annotation></semantics></math>
+<span
+class="smallcaps">Random</span>(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mo>,</mo><mi>b</mi></mrow><annotation encoding="application/x-tex">w,b</annotation></semantics></math>)
+Inicializa aleatoriamente
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mn>1</mn></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">si </mtext><mspace width="0.333em"></mspace></mrow><mi>w</mi><mi>x</mi><mo>+</mo><mi>b</mi><mo>&gt;</mo><mn>0</mn></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mn>0</mn></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">si </mtext><mspace width="0.333em"></mspace></mrow><mi>w</mi><mi>x</mi><mo>+</mo><mi>b</mi><mo>≤</mo><mn>0</mn></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">f(x) = \begin{cases} 1 &amp; \text{si } wx +b &gt; 0 \\ 0 &amp; \text{si } wx+b \leq 0  \end{cases}</annotation></semantics></math>
+Forward
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>w</mi><mi>i</mi></msub><mo>←</mo><msub><mi>w</mi><mi>i</mi></msub><mo>−</mo><mi>η</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>y</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo><msub><mi>x</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">w_i \leftarrow w_i - \eta \big( f(x) - y \big) x_i</annotation></semantics></math>
+Backward
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo>←</mo><mi>b</mi><mo>−</mo><mi>η</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>y</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">b \leftarrow b - \eta \big( f(x) - y \big)</annotation></semantics></math>
+<strong>returns</strong>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mo>⋅</mo><mo>;</mo><mi>w</mi><mo>,</mo><mi>b</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f(\cdot; w,b)</annotation></semantics></math>
+Termina el proceso <strong>returns</strong>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mo>⋅</mo><mo>;</mo><mi>w</mi><mo>,</mo><mi>b</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f(\cdot; w,b)</annotation></semantics></math></p>
+</div>
+<div id="tab:exPercep" class="ex">
+<p><strong>Ejemplo 1.1</strong>. <em>Supongamos que tenemos un problema
+de clasificación binaria con el conjunto de datos que se muestra en el
+Cuadro <a href="#tab:exPercep" data-reference-type="ref"
+data-reference="tab:exPercep">1.1</a>. Para aplicar el algoritmo de
+aprendizaje del perceptrón a este problema, en primer lugar debemos
+elegir, de forma aleatoria unos valores iniciales para los pesos
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mo>∈</mo><msup><mi>ℝ</mi><mi>d</mi></msup></mrow><annotation encoding="application/x-tex">w \in \mathbb{R}^d</annotation></semantics></math>
+y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo>∈</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">b \in \mathbb{R}</annotation></semantics></math>.</em></p>
+<div id="tab:exPercep">
+<table>
+<caption><em>Datos de un problema de clasificación
+binaria</em></caption>
+<thead>
+<tr class="header">
+<th
+style="text-align: center;"><em><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐱</mi><mn>𝟏</mn></msub><annotation encoding="application/x-tex">\mathbf{x_1}</annotation></semantics></math></em></th>
+<th
+style="text-align: center;"><em><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐱</mi><mn>𝟐</mn></msub><annotation encoding="application/x-tex">\mathbf{x_2}</annotation></semantics></math></em></th>
+<th
+style="text-align: center;"><em><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐲</mi><annotation encoding="application/x-tex">\mathbf{y}</annotation></semantics></math></em></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"><em>0</em></td>
+<td style="text-align: center;"><em>1</em></td>
+<td style="text-align: center;"><em>0</em></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><em>0.2</em></td>
+<td style="text-align: center;"><em>1</em></td>
+<td style="text-align: center;"><em>0</em></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><em>0.7</em></td>
+<td style="text-align: center;"><em>0</em></td>
+<td style="text-align: center;"><em>1</em></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><em>1</em></td>
+<td style="text-align: center;"><em>0.1</em></td>
+<td style="text-align: center;"><em>1</em></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><em>Para simplificar tomemos todos los valores de inicio en 1. Es
+decir, iniciamos
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>w</mi><mi>T</mi></msup><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">w^T= \begin{pmatrix}
+    1 &amp; 1
+\end{pmatrix}</annotation></semantics></math> y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">b=1</annotation></semantics></math>.
+En el paso 1, tenemos que obtener los valores de predicción
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f(x)</annotation></semantics></math>
+para cada uno de los ejemplos; en la primera época, el perceptrón está
+dado por la función
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msub><mi>x</mi><mn>1</mn></msub><mo>+</mo><msub><mi>x</mi><mn>2</mn></msub><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">f(x) = x_1 + x_2 + 1</annotation></semantics></math>.
+Se puede comprobar con facilidad que este perceptrón asumirá que todos
+los datos pertenecen a la clase 1. El resultado de las predicciones en
+el paso forward es el siguiente:</em></p>
+<div class="center">
+<table>
+<thead>
+<tr class="header">
+<th
+style="text-align: center;"><em><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f(x)</annotation></semantics></math></em></th>
+<th style="text-align: center;"><em>1</em></th>
+<th style="text-align: center;"><em>1</em></th>
+<th style="text-align: center;"><em>1</em></th>
+<th style="text-align: center;"><em>1</em></th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+</div>
+<p><em>Pasemos entonces a actualizar los pesos del perceptrón de acuerdo
+a la regla establecida en el paso backward del algoritmo. Elijamos un
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>η</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\eta = 1</annotation></semantics></math>,
+de tal forma que consideraremos la tasa de aprendizaje en el
+entrenamiento. Para el primer dato, por ejemplo, tenemos que:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mo>←</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">w \leftarrow \begin{pmatrix} 1 \\ 1 \end{pmatrix} - (1-0)\begin{pmatrix} 0 \\ 1 \end{pmatrix} = \begin{pmatrix} 1 \\ 0 \end{pmatrix}</annotation></semantics></math>
+Hemos actualizado todo el vector de pesos
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>
+en un sólo paso, en lugar de actualizar entrada por entrada como se
+indica en el algoritmo. Para el bias tenemos que la actualización se da
+como
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo>←</mo><mn>1</mn><mo>−</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">b \leftarrow 1 - (1-0) = 0</annotation></semantics></math>.</em></p>
+<p><em>La actualización de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>
+debe hacerse por cada uno de los ejemplos. Sin embargo, para los últimos
+dos ejemplos, en donde la clasificación es correcta, no se realiza
+ninguna actualización, puesto que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>y</mi><mo>=</mo><mn>1</mn><mo>−</mo><mn>1</mn><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">f(x) - y = 1-1 = 0</annotation></semantics></math>,
+por lo que el vector
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>
+no sufre cambios. Para el segundo ejemplo, dada la actualización ya
+realizada, tenemos:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mo>←</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>0</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>0.2</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>0.8</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">w \leftarrow \begin{pmatrix} 1 \\ 0 \end{pmatrix} - (1-0)\begin{pmatrix} 0.2 \\ 1 \end{pmatrix} = \begin{pmatrix} 0.8 \\ -1 \end{pmatrix}</annotation></semantics></math>
+Con esto, terminamos la primera época, obteniendo que los nuevos valores
+para los pesos del perceptrón son
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>w</mi><mi>T</mi></msup><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>0.8</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">w^T = \begin{pmatrix} 0.8 &amp; -1\end{pmatrix}</annotation></semantics></math>
+y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">b = 0</annotation></semantics></math>.
+Es decir, nuestra función del perceptrón con los pesos actualizados está
+dada como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>0.8</mn><msub><mi>x</mi><mn>1</mn></msub><mo>−</mo><msub><mi>x</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">f(x) = 0.8 x_1 - x_2</annotation></semantics></math>
+Este perceptrón con los pesos dados clasifica de forma correcta cada uno
+de los datos de entrenamiento, por lo que el algoritmo terminaría
+después de esta primera época.</em></p>
+</div>
+<p>El algoritmo de aprendizaje del perceptrón permitió el uso del
+perceptrón como un método de aprendizaje para su aplicación a problemas
+reales. Sin embargo, como veremos en la Sección <a
+href="#sec:logicProblems" data-reference-type="ref"
+data-reference="sec:logicProblems">1.2.1</a>, este método tiene fuertes
+limitaciones. A pesar de esto, el perceptrón se puede utilizar en
+problemas sencillos de manera eficiente.</p>
+<div class="prop">
+<p><strong>Proposición 1.1</strong>. <em>La complejidad del algoritmo
+del perceptrón es de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>T</mi><mi>N</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(TN)</annotation></semantics></math>,
+donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
+es el número máximo de épocas y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
+el número de ejemplos de entrenamiento.</em></p>
+</div>
+<div class="proof">
+<p><em>Proof.</em> El algoritmo del perceptrón recorre cada uno de los
+ejemplos en el paso forward y el el paso backward, por lo que realiza
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mi>N</mi></mrow><annotation encoding="application/x-tex">2N</annotation></semantics></math>
+operaciones. En el peor de los casos, se realizará este proceso
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
+veces. Por tanto su complejidad es de orden
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>T</mi><mi>N</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">O(TN)</annotation></semantics></math>. ◻</p>
+</div>
+<p>La proposición anterior muestra que el tiempo que tomará entrenar un
+perceptrón dependerá del tamaño del conjunto de datos. El número de
+épocas
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
+también es un factor importante, pues elegir un número de épocas muy
+pequeño podría llevar al algoritmo a no converger a pesar de que exista
+un perceptrón que solucione el problema. En la práctica se suelen elegir
+números grandes de épocas, buscando asegurar que la convergencia se dé.
+Sin embargo, esto también implica un tiempo largo de entrenamiento sin
+la certeza de encontrar una solución. El siguiente resultado determina
+una cota para el número máximo de épocas para asegurar la convergencia
+del algoritmo.</p>
+<div id="theo:Convergence" class="theo">
+<p><strong>Teorema 1.1</strong>. <em>Sea
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒮</mi><mo>=</mo><mo stretchy="false" form="prefix">{</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>:</mo><mi>x</mi><mo>∈</mo><msup><mi>ℝ</mi><mi>d</mi></msup><mo>,</mo><mi>y</mi><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\mathcal{S} = \{(x,y):x\in\mathbb{R}^d, y\in \{0,1\}\}</annotation></semantics></math>
+un problema de clasificación binaria que pueda resolverse correctamente
+por un perceptrón. Sea
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>w</mi><mo>*</mo></msup><annotation encoding="application/x-tex">w^*</annotation></semantics></math>
+los pesos de la solución óptima del percpetrón. Si para todo
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><mi>x</mi><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><mo>≤</mo><mi>ρ</mi></mrow><annotation encoding="application/x-tex">||x|| \leq \rho</annotation></semantics></math>,
+y además:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mrow><mo stretchy="true" form="prefix">|</mo><msup><mi>w</mi><mo>*</mo></msup><mo>⋅</mo><mi>x</mi><mo stretchy="true" form="postfix">|</mo></mrow><mrow><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><msup><mi>w</mi><mo>*</mo></msup><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow></mrow></mfrac><mo>≥</mo><mi>γ</mi></mrow><annotation encoding="application/x-tex">\frac{|w^* \cdot x|}{||w^*||} \ge \gamma</annotation></semantics></math>
+Entonces el número de épocas,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
+en que el perceptrón converge está acotado como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo>≤</mo><mfrac><mi>ρ</mi><msup><mi>γ</mi><mn>2</mn></msup></mfrac></mrow><annotation encoding="application/x-tex">T  \leq \frac{\rho}{\gamma^2}</annotation></semantics></math></em></p>
+</div>
+<div class="proof">
+<p><em>Proof.</em> Ejercicio. ◻</p>
+</div>
+<figure id="fig:EpochsData">
+<figure>
+<img src="images/Data1.png" />
+<figcaption>Datos con convergencia rápida</figcaption>
+</figure>
+<figure>
+<img src="images/Data2.png" />
+<figcaption>Datos con convergencia lenta</figcaption>
+</figure>
+<figcaption>Dos conjuntos de datos con diferentes rangos de
+convergencia</figcaption>
+</figure>
+<p>El teorema anterior puede demostrarse con conceptos de álgebra lineal
+básicos. Se ignora el bias pues se puede suponer que el hiperplano
+separador pasa por el origen (si no es así, se puede aplicar una
+traslación a los datos). Las cotas
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
+y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>
+determinan la cota superior del número de épocas:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
+representa la concentración de los datos, un valor de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
+alto implica que los datos se encuentran con mayor dispersión en el
+espacio
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>ℝ</mi><mi>d</mi></msup><annotation encoding="application/x-tex">\mathbb{R}^d</annotation></semantics></math>.
+Por su parte,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>
+determina la separación entre los dos conjuntos de datos entre cada
+clase. En la Figura <a href="#fig:EpochsData" data-reference-type="ref"
+data-reference="fig:EpochsData">1.4</a> (a) se puede observar un
+conjunto de datos que tienen un valor de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
+pequeño y un valor
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>
+alto; es decir, están separadas las clases y los conjuntos de clases
+están concentrados en una distancia amplia. La convergencia en estos
+datos será rápida; intuitivamente, se encontrará con facilidad una recta
+que separe los datos: visualmente podemos ver que podemos trazar un gran
+número de rectas que resuelvan el problema. Por el contrario en la
+Figura <a href="#fig:EpochsData" data-reference-type="ref"
+data-reference="fig:EpochsData">1.4</a> (b) encontrar una recta es más
+difícil. Aquí los datos tienen un valor
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
+mayor (tienen mayor dispersión) mientras que el valor
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>
+es más pequeño (la distancia entre ambos conjuntos es corta). Por tanto,
+requerirán de un mayor número de épocas para converger.</p>
+<p>En ambos ejemplos de la Figura <a href="#fig:EpochsData"
+data-reference-type="ref" data-reference="fig:EpochsData">1.4</a>
+podemos garantizar que existe un perceptrón que soluciona el problema,
+lo cual de hecho es una de las condiciones del Teorema <a
+href="#theo:Convergence" data-reference-type="ref"
+data-reference="theo:Convergence">1.1</a>. Si no existe dicho
+perceptrón, es claro que por más épocas que se asignen al algoritmo
+nunca se resolverá el problema. A continuación discutimos cuáles son las
+condiciones que pueden llevarnos a garantizar que un problema pueda ser
+resuelto por un perceptrón.</p>
+
+
+</body>
+</html>

@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Perceptrón</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Definición del Perceptrón</h1>
+<p class="date"> </p>
+</header>
+<p>Una de las primeras propuestas sobre un modelo matemático del
+funcionamiento neuronal fue el de <span class="citation"
+data-cites="mcculloch1943logical"></span>. Estos autores proponían un
+modelo de calculo lógico (capaz de procesar compuertas lógicas)
+inspirado por el trabajo de las neuronas biológicas. Sin embargo, una de
+las desventajas que presentaba este trabajo es que no se planteaba la
+forma de obtener los valores indicados (pesos) para resolver problemas
+específicos. Es decir, no se conocía un método de aprendizaje sobre
+estas neuronas. No fue hasta finales de los años 50s en que se propuso
+un modelo de aprendizaje basado en el funcionamiento de las neuronas.
+Este modelo matemático de una neurona fue llamado perceptrón y
+presentado por Rosenblatt (1958)<span class="citation"
+data-cites="rosenblatt1958perceptron"></span>.</p>
+<p>El perceptrón es un modelo lineal inspirado por el funcionamiento de
+una neurona. En la Figura <a href="#fig:BiolNeuron"
+data-reference-type="ref" data-reference="fig:BiolNeuron">1.1</a> se
+muestra un neurona biológica que, como puede observarse, se compone de
+los siguientes elementos.</p>
+<ul>
+<li><p><strong>Dendritas</strong>. Ramificaciones de la neurona que se
+dedican a la recepción de estímulos, así como a la alimentación
+celular.</p></li>
+<li><p><strong>Cuerpo celular o soma</strong>. Contiene el núcleo
+celular, además de otros organelos.</p></li>
+<li><p><strong>Núcleo</strong>. Cuenta con el material genético (ADN y
+ARN), y se puede decir que es aquí donde se coordinan las funciones de
+la neurona.</p></li>
+<li><p><strong>Axón</strong>. Es una prolongación de la neurona que se
+enfoca en conducir los impulsos nerviosos de una a otra neurona. El axón
+se recubre de células de Schwann, con producción de mielina, la cual
+protege el axón y permite la transmisión del impulso nervioso. En el
+axón se presentan los nódulos de Ranvier, que son las interrupciones que
+se dan en el axón. Finalmente, los terminales del axón se comunican con
+otras neuronas.</p></li>
+</ul>
+<p>De esta forma, la neurona puede pensarse en tres partes que cumplen
+tres funciones esenciales: 1) la recepción de estímulos (dendritas); 2)
+el procesamiento de estos estímulos para producir un impulso nervioso; y
+3) la emisión del impulso nervioso hacia otras neuronas.</p>
+<figure id="fig:BiolNeuron">
+<img src="images/BiolNeuron.png" />
+<figcaption>Diagrama de una neurona biológica</figcaption>
+</figure>
+<p>Como es natural en matemáticas, un modelo busca abstraer una
+estructura para enfocarse en sus componentes más relevantes. El modelo
+del perceptrón es una abstracción de una neurona que deja de lado varios
+de los componentes para simplificar su implementación. En el perceptrón
+se busca que, dado un conjunto de estímulos que llamaremos
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mn>1</mn></msub><mo>,</mo><msub><mi>x</mi><mn>2</mn></msub><mo>,</mo><mi>.</mi><mi>.</mi><mi>.</mi><mo>,</mo><msub><mi>x</mi><mi>d</mi></msub></mrow><annotation encoding="application/x-tex">x_1, x_2,..., x_d</annotation></semantics></math>,
+se emita una señal de salida
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">f(x) \in \{0,1\}</annotation></semantics></math>
+que sea adecuada a una respuesta esperada. Por tanto, dado un conjunto
+de estímulos, se busca emitir un valor
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f(x)</annotation></semantics></math>
+que sea una respuesta adecuada al estímulo.</p>
+<p>Visto así, el perceptrón busca emular la reacción de una neurona ante
+un estímulo. El modelo del procesamiento que hace el núcleo de la
+neurona de los estímulos para obtener la respuesta se basa en la idea de
+que los estímulos que tengan mayor influencia para que la neurona mandé
+la señal (se obtenga el valor
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">f(x)=1</annotation></semantics></math>),
+serán conexiones más fuertes, mientras que aquellos estímulos que no
+influencian o que influencian de forma negativa tendrán conexiones
+débiles. La fuerza de las conexiones se expresa como valores numéricos
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>w</mi><mn>1</mn></msub><mo>,</mo><msub><mi>w</mi><mn>2</mn></msub><mo>,</mo><mi>.</mi><mi>.</mi><mi>.</mi><mo>,</mo><msub><mi>w</mi><mi>d</mi></msub></mrow><annotation encoding="application/x-tex">w_1, w_2,..., w_d</annotation></semantics></math>.
+Estos valores numéricos multiplican al valor de los estímulos y se suman
+para obtener el valor total de los estímulos. El procesamiento del
+núcleo, por tanto, se expresará en la ecuación:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>d</mi></munderover><msub><mi>w</mi><mi>i</mi></msub><msub><mi>x</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">\label{eq:PeceptronNoBias}
+    \sum_{i=1}^d w_i x_i</annotation></semantics></math> Este es un
+valor continuo. Para obtener el valor de la señal, 1 ó 0, se planteará
+la regla: si el valor de la suma de los estímulos ponderado por los
+pesos de las conexiones es mayor a un umbral
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>,
+la neurona se activa, mandando una señal
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">f(x) = 1</annotation></semantics></math>.
+Es decir, si
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>d</mi></msubsup><msub><mi>w</mi><mi>i</mi></msub><msub><mi>x</mi><mi>i</mi></msub><mo>&gt;</mo><mi>b</mi></mrow><annotation encoding="application/x-tex">\sum_{i=1}^d w_i x_i &gt; b</annotation></semantics></math>,
+entonces el perceptrón tendrá la salida 1, en caso contrario (valor
+menor a
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>)
+su salida será 0.</p>
+<p>Ya que los pesos de las conexiones deben adaptarse a los estímulos
+específicos al problema, éstos serán parámetros que se aprenderán
+durante un proceso de entrenamiento. De igual forma, el umbral
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>
+será algo que se deba aprender. Dado esto, no importa si
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>
+tiene un valor negativo o positivo, por lo que podemos expresar la
+decisión del perceptrón con base en
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>d</mi></msubsup><msub><mi>w</mi><mi>i</mi></msub><msub><mi>x</mi><mi>i</mi></msub><mo>+</mo><mi>b</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\sum_{i=1}^d w_i x_i + b &gt; 0</annotation></semantics></math>.
+Visto como un problema de aprendizaje, los estímulos se representan en
+un vector
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>∈</mo><msup><mi>ℝ</mi><mi>d</mi></msup></mrow><annotation encoding="application/x-tex">x \in \mathbb{R}^d</annotation></semantics></math>,
+de igual forma los pesos de las conexiones conforman un vector
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mo>∈</mo><msup><mi>ℝ</mi><mi>d</mi></msup></mrow><annotation encoding="application/x-tex">w \in \mathbb{R}^d</annotation></semantics></math>.
+Finalmente, al umbral
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>
+lo llamaremos <strong>bias</strong> o sesgo. De esta forma, el
+perceptrón se puede definir de la siguiente forma:</p>
+<div id="def:perceptron" class="mydef">
+<p><strong>Definición 1.1</strong> (Perceptrón). <em>El perceptrón es un
+modelo de clasificación lineal, que estima una función
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>:</mo><msup><mi>ℝ</mi><mi>d</mi></msup><mo>→</mo><mo stretchy="false" form="prefix">{</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">f: \mathbb{R}^d \to \{0,1\}</annotation></semantics></math>,
+definida como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mn>1</mn></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">si </mtext><mspace width="0.333em"></mspace></mrow><mi>w</mi><mi>x</mi><mo>+</mo><mi>b</mi><mo>&gt;</mo><mn>0</mn></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mn>0</mn></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">si </mtext><mspace width="0.333em"></mspace></mrow><mi>w</mi><mi>x</mi><mo>+</mo><mi>b</mi><mo>≤</mo><mn>0</mn></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">\label{eq:perceptron}
+    f(x) = \begin{cases} 1 &amp; \text{si } wx +b &gt; 0 \\ 0 &amp; \text{si } wx+b \leq 0  \end{cases}</annotation></semantics></math></em></p>
+</div>
+<p>Una forma común de representar al perceptrón es por medio de una
+gráfica que se presenta en la Figura <a href="#fig:perceptron"
+data-reference-type="ref" data-reference="fig:perceptron">1.2</a>. Los
+estímulos conforman nodos de entrada que se conectan con un nodo (el
+núcleo de la neurona) que contiene el valor
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mi>x</mi><mo>+</mo><mi>b</mi></mrow><annotation encoding="application/x-tex">wx+b</annotation></semantics></math>.
+Con base en este valor, se realiza una suma de los estímulos ponderados
+por los pesos de conexiones. Finalmente, el perceptrón realiza una
+decisión con base en la función escalonada definida en la Ecuación <a
+href="#eq:perceptron" data-reference-type="ref"
+data-reference="eq:perceptron">[eq:perceptron]</a>.</p>
+<figure id="fig:perceptron">
+<img src="images/perceptron.png" />
+<figcaption>Representación gráfica del Perceptrón</figcaption>
+</figure>
+<p>Este modelo del perceptrón cuenta con los siguientes elementos:</p>
+<ul>
+<li><p>Entradas
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>x</mi><mn>1</mn></msub><mo>,</mo><mi>.</mi><mi>.</mi><mi>.</mi><mo>,</mo><msub><mi>x</mi><mi>d</mi></msub></mrow><annotation encoding="application/x-tex">x_1,...,x_d</annotation></semantics></math>
+que emulan a las dendritas que reciben los estímulos codificados en un
+vector.</p></li>
+<li><p>Los pesos
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>w</mi><mn>1</mn></msub><mo>,</mo><mi>.</mi><mi>.</mi><mi>.</mi><mo>,</mo><msub><mi>w</mi><mi>d</mi></msub></mrow><annotation encoding="application/x-tex">w_1,..., w_d</annotation></semantics></math>
+que representan la intensidad de las conexiones de los estímulos de
+entrada con la neurona.</p></li>
+<li><p>El sesgo o bias
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>
+que representa el umbral en el que la neurona se activa o no.</p></li>
+</ul>
+<p>Como lo señalamos en la Definición <a href="#def:perceptron"
+data-reference-type="ref" data-reference="def:perceptron">1.1</a>, el
+perceptrón es un modelo lineal; esto es, realiza una clasificación en
+base a una función lineal, la cual define un hiperplano (o una recta en
+el caso de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>ℝ</mi><mn>2</mn></msup><annotation encoding="application/x-tex">\mathbb{R}^2</annotation></semantics></math>)
+que separa los datos en dos clases, 0 y 1. Este hiperplano está
+parametrizado por los pesos
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mo>∈</mo><msup><mi>ℝ</mi><mi>d</mi></msup></mrow><annotation encoding="application/x-tex">w \in  \mathbb{R}^d</annotation></semantics></math>
+y el bias
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo>∈</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">b \in \mathbb{R}</annotation></semantics></math>
+como se puede ver en la Figura <a href="#fig:plane"
+data-reference-type="ref" data-reference="fig:plane">1.3</a>.</p>
+<figure id="fig:plane">
+<img src="images/plane.png" />
+<figcaption>Separación lineal de los datos en clases binarias que
+realiza el perceptrón</figcaption>
+</figure>
+<p>El hiperplan que separa los datos está definida por el conjunto de
+puntos que cumplen
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mi>x</mi><mo>+</mo><mi>b</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">wx + b = 0</annotation></semantics></math>,
+es decir, este hiperplano es ortogonal a
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>
+y presenta una traslación dada por
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>.
+El entender al perceptrón bajo esta perspectiva geométrica resulta
+importante para comprender sus limitaciones. Es, precisamente, a partir
+de una argumentación geométrica que <span class="citation"
+data-cites="minsky1969introduction"></span> pudieron demostrar que el
+perceptrón no puede resolver problemas complejos como el problema <span
+class="smallcaps">Xor</span> (véase la Sección <a
+href="#sec:logicProblems" data-reference-type="ref"
+data-reference="sec:logicProblems">1.2.1</a>).</p>
+
+</body>
+</html>
