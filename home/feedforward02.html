@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Redes feedforward</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Teoremas de aproximador universal</h1>
+<p class="date"> </p>
+</header>
+
+
+<h2 id="sec:UniversalApproximator"></h2>
+<p>Los teoremas de aproximador universal son una serie de teoremas que
+garantizan que las redes neuronales son capaces de aproximar tanto como
+se quiera a cualquier función de interés. La idea de la aproximación
+universal se basa en la idea de poder definir funciones (más sencillas o
+manejables) que sean tan cercanas como se quiera a otro conjunto de
+funciones (complejas o no conocidas). Podemos definir cuándo un conjunto
+de funciones es un aproximador universal.</p>
+<div id="def:universalApprox" class="mydef">
+<p><strong>Definición 1.14</strong> (Aproximador universal). <em>Una
+clase funciones
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℱ</mi><annotation encoding="application/x-tex">\mathcal{F}</annotation></semantics></math>
+se dice que es un aproximador universal sobre un conjunto compacto
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>
+si para toda función objetivo
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math>
+y para toda
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϵ</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\epsilon &gt; 0</annotation></semantics></math>,
+existe
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>∈</mo><mi>ℱ</mi></mrow><annotation encoding="application/x-tex">f \in \mathcal{F}</annotation></semantics></math>
+tal que:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><munder><mo>sup</mo><mrow><mi>x</mi><mo>∈</mo><mi>S</mi></mrow></munder><mrow><mo stretchy="true" form="prefix">|</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">|</mo></mrow><mo>≤</mo><mi>ϵ</mi></mrow><annotation encoding="application/x-tex">\sup_{x \in S} |f(x) - g(x)| \leq \epsilon</annotation></semantics></math></em></p>
+</div>
+<p>En particular, las redes neuronales pueden aproximar funciones
+continuas o Borel medibles
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>:</mo><msup><mi>ℝ</mi><mi>d</mi></msup><mo>→</mo><msup><mi>ℝ</mi><mi>o</mi></msup></mrow><annotation encoding="application/x-tex">f : \mathbb{R}^d \to \mathbb{R}^o</annotation></semantics></math>.
+Para denotar esta familia de funciones usaremos la siguiente
+notación:</p>
+<ul>
+<li><p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>ℝ</mi><mi>d</mi></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">C(\mathbb{R}^d)</annotation></semantics></math>
+es el conjunto de funciones continuas de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>ℝ</mi><mi>d</mi></msup><mo>→</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">\mathbb{R}^d \to \mathbb{R}</annotation></semantics></math>.</p></li>
+<li><p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>ℝ</mi><mi>d</mi></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">M(\mathbb{R}^d)</annotation></semantics></math>
+es el conjunto de funciones Borel medibles de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>ℝ</mi><mi>d</mi></msup><mo>→</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">\mathbb{R}^d \to \mathbb{R}</annotation></semantics></math>.</p></li>
+</ul>
+<p>Un problema matemático de gran relevancia ha sido encontrar
+aproximaciones a funciones en estos conjuntos a partir de
+representaciones simples. Por ejemplo, el teorema de representación de
+Arnold-Kolmogorov nos dice que toda función continua
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>:</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="true" form="postfix">]</mo></mrow><mi>d</mi></msup><mo>→</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">f: [0,1]^d \to \mathbb{R}</annotation></semantics></math>
+puede ser aproximada por las sumas finitas:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>0</mn></mrow><mrow><mn>2</mn><mi>d</mi></mrow></munderover><msub><mi>ϕ</mi><mi>j</mi></msub><mo minsize="1.8" maxsize="1.8" stretchy="false" form="prefix">(</mo><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>d</mi></munderover><msub><mi>g</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo minsize="1.8" maxsize="1.8" stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">f(x) = \sum_{j=0}^{2d} \phi_j\Big(\sum_{i=1}^d g_{i,j}(x_i)\Big)</annotation></semantics></math>
+Donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϕ</mi><mi>j</mi></msub><mo>,</mo><msub><mi>g</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub><mo>:</mo><mi>ℝ</mi><mo>→</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">\phi_j, g_{i,j}: \mathbb{R} \to \mathbb{R}</annotation></semantics></math>
+son funciones continuas para toda
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+y toda
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>.
+En este caso, debemos encontrar estas funciones. En el caso de las redes
+neuronales, tenemos varios resultados que nos dicen que éstas son
+capaces de aproximar funciones. Aquí demostramos únicamente el caso de
+la aproximación de funciones continuas con funciones sigmoidales que
+presenta Cybenko (1989). Sin embargo, enunciamos también otros
+resultados sobre aproximaciones de funciones Borel medibles, y
+aproximación usando funciones de activación ReLU.</p>
+<p>El resultado de Cybenko (1989) señala que se pueden aproximar
+funciones continuas a partir de una arquitectura de red neuronal con una
+capa oculta que tenga como función de activación una función sigmoidal.
+Si bien ya hemos hablado de la función sigmoide, el concepto de función
+sigmoidal de Cybenko puede verse como un caso más general.</p>
+<div class="mydef">
+<p><strong>Definición 1.15</strong> (Función sigmoidal). <em>Una función
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo>:</mo><mi>ℝ</mi><mo>→</mo><mrow><mo stretchy="true" form="prefix">[</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">g: \mathbb{R} \to [0,1]</annotation></semantics></math>
+es una función sigmoidal si cumple:</em></p>
+<ol>
+<li><p><em>Es no-decreciente.</em></p></li>
+<li><p><em><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>lim</mo><mrow><mi>x</mi><mo>→</mo><mi>∞</mi></mrow></msub><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\lim_{x\to \infty} g(x) = 1</annotation></semantics></math></em></p></li>
+<li><p><em><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>lim</mo><mrow><mi>x</mi><mo>→</mo><mo>−</mo><mi>∞</mi></mrow></msub><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\lim_{x\to -\infty} g(x) = 0</annotation></semantics></math></em></p></li>
+</ol>
+</div>
+<p>Claramente, la función sigmoide
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><mn>1</mn><mrow><mn>1</mn><mo>+</mo><msup><mi>e</mi><mrow><mo>−</mo><mi>x</mi></mrow></msup></mrow></mfrac></mrow><annotation encoding="application/x-tex">\sigma(x) = \frac{1}{1+e^{-x}}</annotation></semantics></math>
+cumple las propiedades anteriores. Tomaremos ahora una forma de
+representar funciones a partir de sumas finitias con funciones
+sigmoidales. Definimos la función
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>:</mo><msub><mi>I</mi><mi>d</mi></msub><mo>→</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">f:  I_d \to \mathbb{R}</annotation></semantics></math>,
+donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>I</mi><mi>d</mi></msub><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="true" form="postfix">]</mo></mrow><mi>d</mi></msup></mrow><annotation encoding="application/x-tex">I_d = [0,1]^d</annotation></semantics></math>
+es el hipercubo unitario, como sigue:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></munderover><msub><mi>θ</mi><mi>j</mi></msub><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>w</mi><mi>j</mi></msub><mo>⋅</mo><mi>x</mi><mo>+</mo><msub><mi>b</mi><mi>j</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\label{eq:FiniteSums}
+    f(x) = \sum_{j=1}^N \theta_j g(w_j \cdot x + b_j)</annotation></semantics></math>
+Donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>θ</mi><mi>j</mi></msub><mo>,</mo><msub><mi>b</mi><mi>j</mi></msub><mo>∈</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">\theta_j, b_j \in \mathbb{R}</annotation></semantics></math>
+son escalares y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>w</mi><mi>j</mi></msub><mo>∈</mo><msup><mi>ℝ</mi><mi>d</mi></msup></mrow><annotation encoding="application/x-tex">w_j \in \mathbb{R}^d</annotation></semantics></math>
+es un vector. Claramente, esta representación define una red neuronal
+con una capa oculta, donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>w</mi><mi>j</mi></msub><annotation encoding="application/x-tex">w_j</annotation></semantics></math>
+son los pesos de la capa,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mi>j</mi></msub><annotation encoding="application/x-tex">b_j</annotation></semantics></math>
+los bias, y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>θ</mi><mi>j</mi></msub><annotation encoding="application/x-tex">\theta_j</annotation></semantics></math>
+los pesos de salida. Asimismo,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo>:</mo><mi>ℝ</mi><mo>→</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">g:\mathbb{R} \to \mathbb{R}</annotation></semantics></math>
+es una función continua no lineal. En particular, si tomamos la matriz
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>W</mi><mo>∈</mo><msup><mi>ℝ</mi><mrow><mi>N</mi><mo>×</mo><mi>d</mi></mrow></msup></mrow><annotation encoding="application/x-tex">W \in \mathbb{R}^{N \times d}</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo>∈</mo><msup><mi>ℝ</mi><mi>N</mi></msup></mrow><annotation encoding="application/x-tex">b \in \mathbb{R}^N</annotation></semantics></math>
+y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi><mo>∈</mo><msup><mi>ℝ</mi><mi>N</mi></msup></mrow><annotation encoding="application/x-tex">\theta \in \mathbb{R}^N</annotation></semantics></math>
+podemos expresar estas sumas finitas en una forma más familiar como:<a
+href="#fn1" class="footnote-ref" id="fnref1"
+role="doc-noteref"><sup>1</sup></a>
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>θ</mi><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>W</mi><mi>x</mi><mo>+</mo><mi>b</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\label{eq:FiniteSums}
+    f(x) = \theta g(W x + b)</annotation></semantics></math> Donde la
+función
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math>
+se aplica sobre el vector
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>W</mi><mi>x</mi><mo>+</mo><mi>b</mi></mrow><annotation encoding="application/x-tex">Wx+b</annotation></semantics></math>
+punto a punto. Este tipo de funciones definen redes neuronales con una
+sola capa oculta y con una sola neurona de salida. Además, se puede ver
+que las redes neuronales que estas funciones definen determinan una
+arquitectura de regresión, pues no tiene una función de activación en la
+capa de salida. Esto es así puesto que, en primer lugar, nos interesa
+demostrar que una red neuronal con una sola capa oculta puede aproximar
+funciones continuas con valores en todo el espacio real
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℝ</mi><annotation encoding="application/x-tex">\mathbb{R}</annotation></semantics></math>.
+Este es un problema más amplio que, como veremos, después puede
+traducirse a un problema de clasificación. En particular, cabe notar que
+las funciones de probabilidad son funciones continuas.</p>
+<p>Cabe señalar que aquí hemos delimitado el dominio de la función a
+entradas en el hipercubo
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mrow><mo stretchy="true" form="prefix">[</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="true" form="postfix">]</mo></mrow><mi>d</mi></msup><annotation encoding="application/x-tex">[0,1]^d</annotation></semantics></math>,
+pero este dominio puede extenderse a cualquier hipercubo
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>X</mi><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mi>a</mi><mo>,</mo><mi>b</mi><mo stretchy="true" form="postfix">]</mo></mrow><mi>d</mi></msup></mrow><annotation encoding="application/x-tex">X = [a,b]^d</annotation></semantics></math>
+o incluso a otros espacios reales multidimensionales, siempre y cuando
+sean estos cerrados y acotados (en general, el dominio debe ser
+compacto); siguiendo la demostración de Cybenko, nos limitaremos al
+dominio
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>I</mi><mi>d</mi></msub><annotation encoding="application/x-tex">I_d</annotation></semantics></math>.</p>
+<p>Una propiedad importante de estas sumas finitas es que la función
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo>:</mo><mi>ℝ</mi><mo>→</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">g: \mathbb{R} \to  \mathbb{R}</annotation></semantics></math>
+es una función continua <strong>discriminatoria</strong>, la cual
+entendemos de la siguiente forma:</p>
+<div class="mydef">
+<p><strong>Definición 1.16</strong> (Función discriminatoria). <em>Una
+función
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo>:</mo><mi>ℝ</mi><mo>→</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">g: \mathbb{R} \to \mathbb{R}</annotation></semantics></math>
+es discriminatoria cuando para una medida de Borel finita, regular y con
+signo
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>
+se tiene que, si se da:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∫</mo><msub><mi>I</mi><mi>d</mi></msub></msub><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mi>x</mi><mo>+</mo><mi>b</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>d</mi><mi>μ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\int_{I_d} g(w x + b) d\mu(x) = 0</annotation></semantics></math>
+para toda
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mo>∈</mo><msup><mi>ℝ</mi><mi>d</mi></msup><mo>,</mo><mi>b</mi><mo>∈</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">w \in \mathbb{R}^d, b \in \mathbb{R}</annotation></semantics></math>,
+entonces
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mo>≡</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\mu \equiv 0</annotation></semantics></math>.</em></p>
+</div>
+<p>Resaltamos que las funciones sigmoidales son funciones
+discriminatorias. De esta forma, lo primero que debemos notar es que las
+funciones
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f(x)</annotation></semantics></math>
+determinadas por la representación en la Ecuación <a
+href="#eq:FiniteSums" data-reference-type="ref"
+data-reference="eq:FiniteSums">[eq:FiniteSums]</a> pertenecen a
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mi>d</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">C(I_d)</annotation></semantics></math>,
+las funciones continuas con dominio en
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>I</mi><mi>n</mi></msub><annotation encoding="application/x-tex">I_n</annotation></semantics></math>.
+Claramente, ya que no tenemos ninguna función de activación, los valores
+de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f(x)</annotation></semantics></math>
+son reales. Más aún,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f(x)</annotation></semantics></math>
+es la composición de funciones continuas
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math>
+que por definición es continua, la función
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>W</mi><mi>x</mi><mo>+</mo><mi>b</mi></mrow><annotation encoding="application/x-tex">Wx+b</annotation></semantics></math>
+y la función
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi><mo>⋅</mo><mi>x</mi></mrow><annotation encoding="application/x-tex">\theta  \cdot x</annotation></semantics></math>),
+por tanto, toda función
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f(x)</annotation></semantics></math>
+es continua. A partir de esto, entonces podemos enunciar el siguiente
+resultado.</p>
+<div class="theo">
+<p><strong>Teorema 1.1</strong> (Aproximador universal (Cybenko, 1989)).
+<em>Sea
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo>:</mo><mi>ℝ</mi><mo>→</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">g: \mathbb{R} \to \mathbb{R}</annotation></semantics></math>
+una función continua discriminatoria, y sea
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℱ</mi><mo>=</mo><mo stretchy="false" form="prefix">{</mo><mi>f</mi><mo>:</mo><msub><mi>I</mi><mi>d</mi></msub><mo>→</mo><mi>ℝ</mi><mo>:</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msubsup><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></msubsup><msub><mi>θ</mi><mi>j</mi></msub><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>w</mi><mi>j</mi></msub><mo>⋅</mo><mi>x</mi><mo>+</mo><msub><mi>b</mi><mi>j</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\mathcal{F} = \{f:I_d \to \mathbb{R} : f(x) = \sum_{j=1}^N \theta_j g(w_j \cdot x + b_j)\}</annotation></semantics></math>.
+Entonces
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>ℱ</mi><mo accent="true">¯</mo></mover><mo>=</mo><mi>C</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mi>d</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\overline{\mathcal{F}} = C(I_d)</annotation></semantics></math>.
+Esto es, si
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϕ</mi><mo>∈</mo><mi>C</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mi>d</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\phi \in C(I_d)</annotation></semantics></math>,
+entonces para toda
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϵ</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\epsilon &gt; 0</annotation></semantics></math>,
+existe
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>∈</mo><mi>ℱ</mi></mrow><annotation encoding="application/x-tex">f \in \mathcal{F}</annotation></semantics></math>
+tal que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>sup</mo><mrow><mi>x</mi><mo>∈</mo><msub><mi>I</mi><mi>d</mi></msub></mrow></msub><mrow><mo stretchy="true" form="prefix">|</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>ϕ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">|</mo></mrow><mo>&lt;</mo><mi>ϵ</mi></mrow><annotation encoding="application/x-tex">\sup_{x \in I_d} |f(x) - \phi(x)| &lt; \epsilon</annotation></semantics></math>.</em></p>
+</div>
+<figure id="fig:approxUniv">
+<img src="images/approx.png" />
+<figcaption>Aproximación de la función coseno por medio de redes
+neuronales</figcaption>
+</figure>
+<p>El teorema de aproximador universal de Cybenko nos dice que una red
+neuronal puede aproximar a cualquier función continua de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mi>d</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">C(I_d)</annotation></semantics></math>
+con una sola capa oculta cuando la función de activación de esta capa es
+discriminatoria, o bien sigmoidal. Este resultado nos garantiza que las
+redes neuronales son herramientas de gran importancia, pues a partir de
+ellas podemos obtener funciones desconocidas siempre que tengamos los
+datos que las representen.</p>
+<p>En la Figura <a href="#fig:approxUniv" data-reference-type="ref"
+data-reference="fig:approxUniv">1.5</a> se puede ver cómo una red
+neuronal aproxima una función coseno en varias iteraciones. La red
+neuronal se va ajustando poco a poco a la función modificando los pesos
+de sus conexiones. El dominio de la función no es sobre todos los reales
+sino sobre un intervalo cerrado, que cumple la condición de ser
+compacto.</p>
+<p>En la siguiente sección se demuestra este teorema de aproximación
+universal. Su demostración requiere de ciertos conocimientos técnicos,
+principalmente requiere de conceptos del análisis funcional. Esta
+sección puede omitirse.</p>
+<h3 class="unnumbered"
+id="demostración-del-teorema-de-aproximador-universal">Demostración del
+teorema de aproximador universal</h3>
+<p>La demostración del teorema de aproximación universal de <span
+class="citation" data-cites="cybenko1989approximation"></span> se hace
+por reducción al absurdo. En primer lugar, denotemos que un conjunto
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>A</mi><annotation encoding="application/x-tex">A</annotation></semantics></math>
+es denso en
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>B</mi><annotation encoding="application/x-tex">B</annotation></semantics></math>
+como
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>A</mi><mo accent="true">¯</mo></mover><mo>=</mo><mi>B</mi></mrow><annotation encoding="application/x-tex">\overline{A} = B</annotation></semantics></math>.
+Recuérdese que el concepto de densidad se puede pensar como en la
+Definición <a href="#def:universalApprox" data-reference-type="ref"
+data-reference="def:universalApprox">1.14</a>: los elementos del
+conjunto denso se acercan a los del del conjunto objetivo. Antes de
+pasar a la demostración, debemos notar los siguientes resultados:</p>
+<ol>
+<li><p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℱ</mi><mo>⊂</mo><mi>C</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mi>d</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{F} \subset C(I_d)</annotation></semantics></math>;
+es decir, las funciones de la forma
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></msubsup><msub><mi>θ</mi><mi>j</mi></msub><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>w</mi><mi>j</mi></msub><mi>x</mi><mo>+</mo><msub><mi>b</mi><mi>j</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\sum_{j=1}^N \theta_j g(w_j  x + b_j)</annotation></semantics></math>
+son funciones continuas. Más aún, este tipo de funciones son cerradas
+bajo la suma, por lo que conforman un subespacio de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mi>d</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">C(I_d)</annotation></semantics></math>.</p></li>
+<li><p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℱ</mi><annotation encoding="application/x-tex">\mathcal{F}</annotation></semantics></math>
+es un subconjunto propio de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mi>d</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">C(I_d)</annotation></semantics></math>,
+pues conocemos funciones continuas que no son de esta forma; por
+ejemplo, las funciones trigonométricas (donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">d=1</annotation></semantics></math>).</p></li>
+<li><p>Las funciones discriminatorias cumplen
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mi>x</mi><mo>+</mo><mi>b</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>∈</mo><mover><mi>ℱ</mi><mo accent="true">¯</mo></mover></mrow><annotation encoding="application/x-tex">g(w  x + b) \in \overline{\mathcal{F}}</annotation></semantics></math>;
+en particular, podemos ver que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mi>x</mi><mo>+</mo><mi>b</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>∈</mo><mi>ℱ</mi></mrow><annotation encoding="application/x-tex">g(w x + b) \in \mathcal{F}</annotation></semantics></math>
+cuando
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>=</mo><mn>1</mn><mo>=</mo><msub><mi>θ</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">N = 1 = \theta_1</annotation></semantics></math>.</p></li>
+</ol>
+<p>Ahora bien, podemos suponer que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>ℱ</mi><mo accent="true">¯</mo></mover><mo>≠</mo><mi>C</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mi>d</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\overline{\mathcal{F}} \neq C(I_d)</annotation></semantics></math>;
+es decir, que las sumas finitas no son densas en
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mi>d</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">C(I_d)</annotation></semantics></math>
+y que por tanto, existen funciones continuas en
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mi>d</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">C(I_d)</annotation></semantics></math>
+que no pueden ser aproximadas por funciones en
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℱ</mi><annotation encoding="application/x-tex">\mathcal{F}</annotation></semantics></math>.
+Para continuar con la demostración, debemos recurrir a un resultado de
+gran importancia del análisis funcional: el teorema de Hahn-Banach. El
+teorema de Hahn-Banach trata sobre la extensión y separabilidad en
+espacios lineales y suele usarse para demostrar densidad de
+subespacios.</p>
+<div id="theo:HahnBanach" class="theo">
+<p><strong>Teorema 1.2</strong> (Hahn-Banach). <em>Sea
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ρ</mi><annotation encoding="application/x-tex">\rho</annotation></semantics></math>
+un funcional definido sobre un espacio normado
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>X</mi><annotation encoding="application/x-tex">X</annotation></semantics></math>
+que cumpla: i)
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∀</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo>∈</mo><mi>X</mi><mo>,</mo><mi>ρ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>+</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>≤</mo><mi>ρ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mi>ρ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\forall x,y \in X, \rho(x+y) \leq \rho(x) + \rho(y)</annotation></semantics></math>;
+y ii)
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∀</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo>∈</mo><mi>X</mi><mo>,</mo><mi>ρ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>λ</mi><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>λ</mi><mi>ρ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\forall x,y \in X, \rho(\lambda x) = \lambda \rho(x)</annotation></semantics></math>
+con
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi><mo>∈</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">\lambda \in \mathbb{R}</annotation></semantics></math>.
+Sea
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>G</mi><annotation encoding="application/x-tex">G</annotation></semantics></math>
+un funcional lineal definido en un subespacio
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>
+de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>X</mi><annotation encoding="application/x-tex">X</annotation></semantics></math>,
+tal que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo>≤</mo><mi>ρ</mi></mrow><annotation encoding="application/x-tex">g \leq \rho</annotation></semantics></math>.
+Entonces, existe un funcional lineal
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>F</mi><annotation encoding="application/x-tex">F</annotation></semantics></math>
+en
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>X</mi><annotation encoding="application/x-tex">X</annotation></semantics></math>
+que extiende
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>G</mi><annotation encoding="application/x-tex">G</annotation></semantics></math>,
+es decir, para los puntos
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>∈</mo><mi>M</mi><mo>⊂</mo><mi>X</mi></mrow><annotation encoding="application/x-tex">x \in M \subset X</annotation></semantics></math>
+se tiene que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>G</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>F</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">G(x) = F(x)</annotation></semantics></math>,
+y además
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>≤</mo><mi>ρ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">F(x) \leq \rho(x)</annotation></semantics></math>
+para toda
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>∈</mo><mi>X</mi></mrow><annotation encoding="application/x-tex">x \in X</annotation></semantics></math>.</em></p>
+</div>
+<p>El teorema de Hahn-Banach señala que si en un subespacio
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>
+de un espacio
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>X</mi><annotation encoding="application/x-tex">X</annotation></semantics></math>
+tenemos un funcional
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>G</mi><mo>:</mo><mi>M</mi><mo>→</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">G: M \to \mathbb{R}</annotation></semantics></math>,
+podemos extender este funcional a todo el espacio
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>X</mi><annotation encoding="application/x-tex">X</annotation></semantics></math>;
+es decir, podemos encontrar el funcional
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>F</mi><annotation encoding="application/x-tex">F</annotation></semantics></math>
+definido sobre todo el espacio
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>X</mi><annotation encoding="application/x-tex">X</annotation></semantics></math>
+y que se comporte como
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>G</mi><annotation encoding="application/x-tex">G</annotation></semantics></math>
+cuando evalúa puntos de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>.
+Este funcional está acotado, pero esta parte del toerema no será de gran
+relevancia para nuestros propósitos.</p>
+<p>La idea de la demostración de este teorema consiste en crear un
+subespacio
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>M</mi><mn>1</mn></msub><annotation encoding="application/x-tex">M_1</annotation></semantics></math>
+que contiene a
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>
+agregando un nuevo punto
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mn>0</mn></msub><annotation encoding="application/x-tex">x_0</annotation></semantics></math>
+que no está en
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>.
+Este nuevo subespacio se define como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>M</mi><mn>1</mn></msub><mo>=</mo><mo stretchy="false" form="prefix">{</mo><mi>x</mi><mo>+</mo><mi>λ</mi><msub><mi>x</mi><mn>0</mn></msub><mo>:</mo><mi>x</mi><mo>∈</mo><mi>M</mi><mo>,</mo><mi>λ</mi><mo>∈</mo><mi>ℝ</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">M_1 = \{x + \lambda x_0 : x \in M, \lambda \in \mathbb{R}\}</annotation></semantics></math>
+Claramente
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>⊂</mo><msub><mi>M</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">M \subset M_1</annotation></semantics></math>,
+pues basta tomar
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\lambda = 0</annotation></semantics></math>
+para obtener los elementos de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>.
+Entonces se define un nuevo funcional
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>G</mi><mn>1</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>+</mo><mi>λ</mi><msub><mi>x</mi><mn>0</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>G</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mi>λ</mi><mi>c</mi></mrow><annotation encoding="application/x-tex">G_1(x + \lambda x_0) = G(x) + \lambda c</annotation></semantics></math>
+para algún
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mo>∈</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">c\in \mathbb{R}</annotation></semantics></math>.
+El funcional
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>G</mi><mn>1</mn></msub><annotation encoding="application/x-tex">G_1</annotation></semantics></math>
+extiende a
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>G</mi><annotation encoding="application/x-tex">G</annotation></semantics></math>
+pues claramente cuando
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>∈</mo><mi>M</mi></mrow><annotation encoding="application/x-tex">x \in M</annotation></semantics></math>,
+se tiene que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\lambda = 0</annotation></semantics></math>,
+por lo que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>G</mi><mn>1</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>G</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">G_1(x) = G(x)</annotation></semantics></math>.
+La idea es crear otro subespacio
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>M</mi><mn>2</mn></msub><annotation encoding="application/x-tex">M_2</annotation></semantics></math>
+agregando otro punto que no estaba en
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>M</mi><mn>1</mn></msub><annotation encoding="application/x-tex">M_1</annotation></semantics></math>,
+luego de igual forma extender
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>M</mi><mn>2</mn></msub><annotation encoding="application/x-tex">M_2</annotation></semantics></math>
+a otro subespacio
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>M</mi><mn>3</mn></msub><annotation encoding="application/x-tex">M_3</annotation></semantics></math>
+y así consecutivamente. De igual forma se crean extensiones de los
+funcionales
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>G</mi><mn>1</mn></msub><mo>,</mo><msub><mi>G</mi><mn>2</mn></msub><mo>,</mo><mi>.</mi><mi>.</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">G_1, G_2, ...</annotation></semantics></math>.
+Se comprueba que existe un elemento maximal<a href="#fn2"
+class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> y
+que este maximal es todo el espacio
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>X</mi><annotation encoding="application/x-tex">X</annotation></semantics></math>;
+por tanto, la extensión de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>G</mi><annotation encoding="application/x-tex">G</annotation></semantics></math>
+en este maximal es precisamente el funcional
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>F</mi><annotation encoding="application/x-tex">F</annotation></semantics></math>
+que estamos buscando.</p>
+<p>El teorema de Hahn-Banach, entonces, señala la extensibilidad de
+funcionales lineales. Una de las aplicaciones relevantes de este teorema
+tiene que ver con la separabilidad. Enunciamos este resultado en el
+siguiente corolario:</p>
+<div id="theo:separabilidad" class="cor">
+<p><strong>Corolario 1.1</strong> (Separabilidad por funcional lineal).
+<em>Sea
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>
+un subespacio de un espacio lineal normado
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>X</mi><annotation encoding="application/x-tex">X</annotation></semantics></math>,
+tomemos
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mi>′</mi><mo>∈</mo><mover><mi>M</mi><mo accent="true">¯</mo></mover></mrow><annotation encoding="application/x-tex">x&#39; \in \overline{M}</annotation></semantics></math>,
+entonces existe un funcional lineal
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mo>:</mo><mi>X</mi><mo>→</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">F: X \to \mathbb{R}</annotation></semantics></math>
+que cumple:</em></p>
+<ol>
+<li><p><em>Para todo
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>∈</mo><mi>M</mi></mrow><annotation encoding="application/x-tex">x \in M</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">F(x) = 0</annotation></semantics></math>,</em></p></li>
+<li><p><em><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">F(x&#39;) = 1</annotation></semantics></math></em></p></li>
+<li><p><em><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><mi>F</mi><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><mo>=</mo><mfrac><mn>1</mn><mi>d</mi></mfrac></mrow><annotation encoding="application/x-tex">||F|| = \frac{1}{d}</annotation></semantics></math>
+donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>
+es la distancia de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mi>′</mi></mrow><annotation encoding="application/x-tex">x&#39;</annotation></semantics></math>
+al subespacio
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>.</em></p></li>
+</ol>
+</div>
+<p>El tercer punto no nos interesa para la demostración del aproximador
+universal, pues tiene que ver con la norma del funcional. Lo que nos
+interesa aquí es señalar que lo que este resultado nos dice es que
+podemos encontrar un funcional que separe el punto
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mi>′</mi></mrow><annotation encoding="application/x-tex">x&#39;</annotation></semantics></math>
+de los elementos en
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>
+asignándole
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>0</mn><annotation encoding="application/x-tex">0</annotation></semantics></math>
+a todos los elementos de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>
+y 1 al elemento de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mi>′</mi></mrow><annotation encoding="application/x-tex">x&#39;</annotation></semantics></math>.
+Este resultado esta ligado con la separabilidad lineal de conjuntos
+convexos, pero aquí lo usaremos para mostrar que una red con una capa
+oculta puede separar conjuntos no necesariamente convexos.</p>
+<p>Para mostrar este resultado basta generar un subespacio nuevo
+definido como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>M</mi><mn>1</mn></msub><mo>=</mo><mo stretchy="false" form="prefix">{</mo><mi>x</mi><mo>+</mo><mi>λ</mi><mi>x</mi><mi>′</mi><mo>:</mo><mi>x</mi><mo>∈</mo><mi>M</mi><mo>,</mo><mi>λ</mi><mo>∈</mo><mi>ℝ</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">M_1 = \{x + \lambda x&#39; : x \in M, \lambda \in \mathbb{R} \}</annotation></semantics></math>
+Definimos entonces un funcional lineal que cumpla la siguiente igualdad:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>+</mo><mi>λ</mi><mi>x</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>λ</mi></mrow><annotation encoding="application/x-tex">F(x + \lambda x&#39;) = \lambda</annotation></semantics></math>
+El cual, precisamente, por tratarse de un funcional lineal cumple que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo>+</mo><mi>λ</mi><mi>x</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>F</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mi>λ</mi><mi>F</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">F(x + \lambda x&#39;) = F(x) + \lambda F(x&#39;)</annotation></semantics></math>
+para todo
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>∈</mo><mi>M</mi></mrow><annotation encoding="application/x-tex">x \in M</annotation></semantics></math>.
+Por tanto, podemos ver que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">F(x) = 0</annotation></semantics></math>
+para todo
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>∈</mo><mi>M</mi></mrow><annotation encoding="application/x-tex">x \in M</annotation></semantics></math>,
+y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mi>′</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">F(x&#39;) = 1</annotation></semantics></math>.</p>
+<p>Ahora bien, podemos usar el teorema de Hahn-Banach para extender este
+funcional a todo el espacio
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>X</mi><annotation encoding="application/x-tex">X</annotation></semantics></math>.
+De tal forma que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>F</mi><annotation encoding="application/x-tex">F</annotation></semantics></math>
+se anule en
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>,
+pero el funcional no es 0, pues al menos para el punto
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mi>′</mi></mrow><annotation encoding="application/x-tex">x&#39;</annotation></semantics></math>
+es diferente de 0.</p>
+<p>Podemos ahora usar el resultado de la separabilidad para el caso que
+nos interesa. En este caso, el espacio lineal será el espacio de
+funciones continuas
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mi>d</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">C(I_d)</annotation></semantics></math>.
+Se trata de un espacio normado en el que podemos definir la norma:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">|</mo><mo stretchy="true" form="postfix">|</mo></mrow><mo>=</mo><munder><mo>sup</mo><mi>x</mi></munder><mrow><mo stretchy="true" form="prefix">|</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">|</mo></mrow></mrow><annotation encoding="application/x-tex">||f|| = \sup_x|f(x)|</annotation></semantics></math>
+Para toda
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>∈</mo><mi>C</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mi>d</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f \in C(I_d)</annotation></semantics></math>.
+Entonces el subespacio de
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mi>d</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">C(I_d)</annotation></semantics></math>
+que nos interesa será
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℱ</mi><annotation encoding="application/x-tex">\mathcal{F}</annotation></semantics></math>,
+el subespacio de las sumas finitas (o redes neuronales con una capa
+oculta). Por los resultados que acabamos de ver, sabemos que existe un
+funcional lineal
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>F</mi><annotation encoding="application/x-tex">F</annotation></semantics></math>
+en
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mi>d</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">C(I_d)</annotation></semantics></math>
+tal que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mo>≢</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">F \not\equiv 0</annotation></semantics></math>,
+pero
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>h</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">F(h) = 0</annotation></semantics></math>
+para toda función
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo>∈</mo><mover><mi>ℱ</mi><mo accent="true">¯</mo></mover></mrow><annotation encoding="application/x-tex">h \in\overline{\mathcal{F}}</annotation></semantics></math>.
+Ya que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℱ</mi><mo>⊆</mo><mover><mi>ℱ</mi><mo accent="true">¯</mo></mover></mrow><annotation encoding="application/x-tex">\mathcal{F} \subseteq \overline{\mathcal{F}}</annotation></semantics></math>
+es claro que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>F</mi><annotation encoding="application/x-tex">F</annotation></semantics></math>
+también se anula en el espacio que nos interesa. Nótese que, como hemos
+asumido que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>ℱ</mi><mo accent="true">¯</mo></mover><mo>≠</mo><mi>C</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mi>d</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\overline{\mathcal{F}} \neq C(I_d)</annotation></semantics></math>,
+entonces
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mo>≢</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">F \not\equiv 0</annotation></semantics></math>
+en
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mi>d</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>\</mo><mover><mi>ℱ</mi><mo accent="true">¯</mo></mover></mrow><annotation encoding="application/x-tex">C(I_d) \setminus \overline{\mathcal{F}}</annotation></semantics></math>;
+es decir, hay funciones en
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mi>d</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">C(I_d)</annotation></semantics></math>
+que no están en
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>ℱ</mi><mo accent="true">¯</mo></mover><annotation encoding="application/x-tex">\overline{\mathcal{F}}</annotation></semantics></math>
+para los que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>F</mi><annotation encoding="application/x-tex">F</annotation></semantics></math>
+es diferente de 0.</p>
+<p>Ahora, usaremos otro resultado de importancia en el análisis
+funcional: el teorema de representación de Riesz que nos dice que todo
+funcional lineal puede expresarse en la forma:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>h</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msub><mo>∫</mo><msub><mi>I</mi><mi>d</mi></msub></msub><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>d</mi><mi>μ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">F(h) = \int_{I_d} h(x) d\mu(x)</annotation></semantics></math>
+Para toda
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo>∈</mo><mi>C</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>I</mi><mo>:</mo><mi>d</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">h \in C(I:d)</annotation></semantics></math>
+y con
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>
+es una medida finita, regular y con signo. Ahora bien, sabemos que la
+función discriminatoria
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo>∈</mo><mover><mi>ℱ</mi><mo accent="true">¯</mo></mover></mrow><annotation encoding="application/x-tex">g \in \overline{\mathcal{F}}</annotation></semantics></math>
+(de hecho, podemos pensar a esta función como una red neuronal con una
+sola neurona). Por tanto, podemos aplicar el funcional
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>F</mi><annotation encoding="application/x-tex">F</annotation></semantics></math>
+a
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math>
+obteniendo:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>g</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msub><mo>∫</mo><msub><mi>I</mi><mi>d</mi></msub></msub><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mi>x</mi><mo>+</mo><mi>b</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>d</mi><mi>μ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">F(g) = \int_{I_d} g(w x + b) d\mu(x) = 0</annotation></semantics></math>
+Y ya que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math>
+es una función discriminatoria, tenemos necesariamente que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mo>≡</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\mu \equiv 0</annotation></semantics></math>;
+pero si la medida para esta representación es nula, entonces
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mo>≡</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">F \equiv 0</annotation></semantics></math>
+sobre todo el espacio
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mi>d</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">C(I_d)</annotation></semantics></math>;
+es decir, debe pasar que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>h</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">F(h) = 0</annotation></semantics></math>
+para toda
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo>∈</mo><mi>C</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mi>d</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">h \in C(I_d)</annotation></semantics></math>.
+Pero esto contradice el Corolario <a href="#theo:separabilidad"
+data-reference-type="ref"
+data-reference="theo:separabilidad">1.1</a>.</p>
+<p>La contradicción viene de asumir que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>ℱ</mi><mo accent="true">¯</mo></mover><mo>≠</mo><mi>C</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mi>d</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\overline{\mathcal{F}} \neq C(I_d)</annotation></semantics></math>,
+por lo que debe ser que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>ℱ</mi><mo accent="true">¯</mo></mover><mo>=</mo><mi>C</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mi>d</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\overline{\mathcal{F}} = C(I_d)</annotation></semantics></math>.
+Por tanto, las funciones en
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℱ</mi><annotation encoding="application/x-tex">\mathcal{F}</annotation></semantics></math>
+aproximan tanto como se quiera a las funciones continuas en
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>I</mi><mi>d</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">C(I_d)</annotation></semantics></math>.</p>
+<h3 id="otros-teoremas-de-aproximador-universal">Otros teoremas de
+aproximador universal</h3>
+<p>El teorema de <span class="citation"
+data-cites="cybenko1989approximation"></span> es uno de los primeros
+teoremas en demostrar la propiedad de aproximación de las redes
+neuronales. A partir de este teorema, se han desarrollado otros que
+amplían al de Cybenko. Algunos de estos teoremas, por ejemplo, se basan
+no en funciones continuas sino en funciones Borel medibles. Otros
+determinan cotas para la anchura de la red neuronal. Recordemos que si
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>ℱ</mi><mo accent="true">¯</mo></mover><mo>=</mo><mi>𝒢</mi></mrow><annotation encoding="application/x-tex">\overline{\mathcal{F}} = \mathcal{G}</annotation></semantics></math>
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℱ</mi><annotation encoding="application/x-tex">\mathcal{F}</annotation></semantics></math>
+es denso en
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒢</mi><annotation encoding="application/x-tex">\mathcal{G}</annotation></semantics></math>))
+entonces para cada función
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo>∈</mo><mi>𝒢</mi></mrow><annotation encoding="application/x-tex">g \in \mathcal{G}</annotation></semantics></math>
+podemos encontrar una función
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>∈</mo><mi>ℱ</mi></mrow><annotation encoding="application/x-tex">f \in \mathcal{F}</annotation></semantics></math>
+tal que para toda
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϵ</mi><annotation encoding="application/x-tex">\epsilon</annotation></semantics></math>
+se cumple
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>sup</mo><mi>x</mi></msub><mrow><mo stretchy="true" form="prefix">|</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">|</mo></mrow><mo>≤</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\sup_x |f(x) - g(x)| \leq 0</annotation></semantics></math>.
+Como en el caso de Cybenko, asumiremos que el dominio de las funciones
+es compacto. Denotaremos al conjunto de las redes neuronales como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℱ</mi><mo>=</mo><mo stretchy="false" form="prefix">{</mo><mi>f</mi><mo>∈</mo><mi>C</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>X</mi><mo>,</mo><mi>Y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>:</mo><mi>f</mi><mo>≡</mo><mi>θ</mi><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mi>x</mi><mo>+</mo><mi>b</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\mathcal{F} = \{ f \in C(X,Y) : f \equiv \theta g(wx+b)\}</annotation></semantics></math>
+Con
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math>
+una función de activación,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
+los pesos de salida y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>W</mi><annotation encoding="application/x-tex">W</annotation></semantics></math>
+y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>b</mi><annotation encoding="application/x-tex">b</annotation></semantics></math>
+los pesos de la capa oculta. Consideremos las redes con una sola capa.
+De esta forma, enunciamos el teorema de <span class="citation"
+data-cites="hornik1989multilayer"></span>:</p>
+<div class="theo">
+<p><strong>Teorema 1.3</strong> (Aproximador Universal (Hornik et al.,
+1989)). <em>Sea
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℱ</mi><annotation encoding="application/x-tex">\mathcal{F}</annotation></semantics></math>
+el conjunto de redes feedforward con una sola capa oculta con función de
+activación sigmoidal, entonces si
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>X</mi><mo>⊆</mo><msup><mi>ℝ</mi><mi>d</mi></msup></mrow><annotation encoding="application/x-tex">X \subseteq \mathbb{R}^d</annotation></semantics></math>
+es un conjunto compacto,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>ℱ</mi><mo accent="true">¯</mo></mover><mo>=</mo><mi>C</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>X</mi><mo>,</mo><msup><mi>ℝ</mi><mi>o</mi></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\overline{\mathcal{F}} = C(X, \mathbb{R}^o)</annotation></semantics></math>,
+siempre que la red tenga la anchura suficiente.</em></p>
+</div>
+<p>El teorema de <span class="citation"
+data-cites="hornik1989multilayer"></span> extiende las funciones que se
+pueden aproximar a funciones con un co-dominio en
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>ℝ</mi><mi>o</mi></msup><annotation encoding="application/x-tex">\mathbb{R}^o</annotation></semantics></math>,
+por lo que las redes neuronales tendrán
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>o</mi><annotation encoding="application/x-tex">o</annotation></semantics></math>
+neuronas de salidas. Más adelante, en el trabajo de <span
+class="citation" data-cites="hornik1991approximation"></span>, además
+las funciones que se aproximan se extienden a funciones Borel medibles;
+es decir,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>ℱ</mi><mo accent="true">¯</mo></mover><mo>=</mo><mi>M</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>ℝ</mi><mi>d</mi></msup><mo>,</mo><msup><mi>ℝ</mi><mi>o</mi></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\overline{\mathcal{F}} = M(\mathbb{R}^d, \mathbb{R}^o)</annotation></semantics></math>.</p>
+<p>El trabajo de <span class="citation"
+data-cites="leshno1993multilayer"></span> muestra que las funciones de
+activación deben de cumplir la condición de ser no polinomiales para que
+la red sea un aproximador universal sobre funciones continuas.</p>
+<div class="theo">
+<p><strong>Teorema 1.4</strong> (Aproximador Universal (Leshno et al.,
+1992)). <em>Dada funciones de activación no-polinomiales, tenemos que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>ℱ</mi><mo accent="true">¯</mo></mover><mo>=</mo><mi>C</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>ℝ</mi><mi>d</mi></msup><mo>,</mo><msup><mi>ℝ</mi><mi>o</mi></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\overline{\mathcal{F}} = C(\mathbb{R}^d, \mathbb{R}^o)</annotation></semantics></math>.</em></p>
+</div>
+<p>Recientemente, trabajos como el de <span class="citation"
+data-cites="park2020minimum"></span>, se han enfocado en redes con
+activación ReLU, mostrando además cotas para la anchura mínima de un a
+red que pueda ser un aproximador universal.</p>
+<div class="theo">
+<p><strong>Teorema 1.5</strong> (Aproximador Universal (Park et al.,
+2020)). <em>Dada funciones de activación ReLU, tenemos que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>ℱ</mi><mo accent="true">¯</mo></mover><mo>=</mo><mi>M</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>ℝ</mi><mi>d</mi></msup><mo>,</mo><msup><mi>ℝ</mi><mi>o</mi></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\overline{\mathcal{F}} = M(\mathbb{R}^d, \mathbb{R}^o)</annotation></semantics></math>
+siempre que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mi>i</mi><mi>d</mi><mi>t</mi><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>f</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>≥</mo><mo>max</mo><mo stretchy="false" form="prefix">{</mo><mi>d</mi><mo>+</mo><mn>1</mn><mo>,</mo><mi>o</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">width(f) \geq \max\{d + 1, o\}</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>∈</mo><mi>ℱ</mi></mrow><annotation encoding="application/x-tex">f \in \mathcal{F}</annotation></semantics></math>.</em></p>
+</div>
+<p>Muchos trabajos actuales se han enfocado a mostrar la propiedad de
+aproximador universal de las redes neuronales, utilizando principalmente
+funciones de activación ReLU o de la misma familia. Principalmente se
+enfocan en determinar las cotas de una anchura mínima de las redes para
+que cumplan la aproximación universal. El trabajo de <span
+class="citation" data-cites="duan2023minimum"></span> resume algunos de
+los trabajos recientes sobre aproximación universal.</p>
+
+
+<aside id="footnotes" class="footnotes footnotes-end-of-document"
+role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Dado a que en esta sección sólo abarcaremos redes con
+una capa oculta, distinguimos los pesos de la capa de salida con el uso
+de la notación
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
+en lugar del uso de índices como lo hacemos a lo largo del texto.<a
+href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>Esta demostración utiliza el lema de Zorn, que es un
+resultado que fue polémico en matemáticas, pues asume el axioma de
+elección.<a href="#fnref2" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+</ol>
+</aside>
+</body>
+</html>

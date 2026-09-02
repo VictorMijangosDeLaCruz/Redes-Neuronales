@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Teoría de aprendiza
+estadístico</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Ejercicios</h1>
+<p class="date"> </p>
+</header>
+
+
+
+<ol>
+<li><p>De los siguientes ejemplos determine cuáles son los elementos: 1)
+tarea
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>,
+2) medida de desempeño
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>P</mi><annotation encoding="application/x-tex">P</annotation></semantics></math>,
+y 3) experiencia
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>E</mi><annotation encoding="application/x-tex">E</annotation></semantics></math>.</p>
+<ol>
+<li><p>Un sistema que aprende a detectar spam.</p></li>
+<li><p>Detectar y etiquetar con una clase los objetos que aparecen en
+una imagen.</p></li>
+<li><p>Un sistema para predecir una enfermedad a partir de los síntomas
+de un paciente.</p></li>
+<li><p>Predecir el precio de un televisor dado los años de uso.</p></li>
+<li><p>Generar voz sintetizada a partir de una entrada textual.</p></li>
+</ol></li>
+<li><p>Dado el siguiente cuadro con las predicciones hechas por una
+máquina de aprendizaje para predecir colores con los valores esperados
+de la supervisión:</p>
+<div class="center">
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;"><strong>Predicción</strong></th>
+<th style="text-align: center;">v</th>
+<th style="text-align: center;">v</th>
+<th style="text-align: center;">a</th>
+<th style="text-align: center;">a</th>
+<th style="text-align: center;">r</th>
+<th style="text-align: center;">r</th>
+<th style="text-align: center;">v</th>
+<th style="text-align: center;">a</th>
+<th style="text-align: center;">r</th>
+<th style="text-align: center;">r</th>
+<th style="text-align: center;">v</th>
+<th style="text-align: center;">v</th>
+<th style="text-align: center;">a</th>
+<th style="text-align: center;">v</th>
+<th style="text-align: center;">v</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"><strong>Supervisión</strong></td>
+<td style="text-align: center;">a</td>
+<td style="text-align: center;">a</td>
+<td style="text-align: center;">a</td>
+<td style="text-align: center;">a</td>
+<td style="text-align: center;">a</td>
+<td style="text-align: center;">r</td>
+<td style="text-align: center;">r</td>
+<td style="text-align: center;">r</td>
+<td style="text-align: center;">r</td>
+<td style="text-align: center;">r</td>
+<td style="text-align: center;">v</td>
+<td style="text-align: center;">v</td>
+<td style="text-align: center;">v</td>
+<td style="text-align: center;">v</td>
+<td style="text-align: center;">v</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>obtener la matriz de confusión, los valores de precisión, recall
+(sensitibity),
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>F</mi><mn>1</mn></msub><annotation encoding="application/x-tex">F_1</annotation></semantics></math>,
+así como el <em>micro</em> y <em>macro average</em> por clase.</p></li>
+<li><p>A partir de los siguientes datos de un agrupamiento:</p>
+<div class="center">
+<p><img src="images/clustering.png" alt="image" /></p>
+</div>
+<p>Calcular la pureza de los clústers propuestos.</p></li>
+<li><p>A partir del siguiente dataset:</p>
+<div class="center">
+<table>
+<thead>
+<tr class="header">
+<th
+style="text-align: center;"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐗</mi><mn>𝟏</mn></msub><annotation encoding="application/x-tex">\mathbf{X_1}</annotation></semantics></math></th>
+<th
+style="text-align: center;"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐗</mi><mn>𝟐</mn></msub><annotation encoding="application/x-tex">\mathbf{X_2}</annotation></semantics></math></th>
+<th
+style="text-align: center;"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐗</mi><mn>𝟑</mn></msub><annotation encoding="application/x-tex">\mathbf{X_3}</annotation></semantics></math></th>
+<th
+style="text-align: center;"><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐗</mi><mn>𝟒</mn></msub><annotation encoding="application/x-tex">\mathbf{X_4}</annotation></semantics></math></th>
+<th style="text-align: center;"><strong>Y</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">0.5</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0.8</td>
+<td style="text-align: center;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">0.7</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0.5</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">1</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">0.5</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">0.1</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">1</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0.1</td>
+<td style="text-align: center;">0.2</td>
+<td style="text-align: center;">1</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Hacer el análisis de cada variable (media, varianza) así como obtener
+los valores de covarianza y calcular la correlación de las variables
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>X</mi><mn>1</mn></msub><mo>,</mo><msub><mi>X</mi><mn>2</mn></msub><mo>,</mo><msub><mi>X</mi><mn>3</mn></msub></mrow><annotation encoding="application/x-tex">X_1, X_2, X_3</annotation></semantics></math>
+y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>X</mi><mn>4</mn></msub><annotation encoding="application/x-tex">X_4</annotation></semantics></math>
+con respecto a
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Y</mi><annotation encoding="application/x-tex">Y</annotation></semantics></math>.</p></li>
+<li><p>A partir de los datos del ejercicio anterior, asumiendo que se
+tienen los pesos
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>w</mi><mi>T</mi></msup><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mo>−</mo><mn>1</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">w^T = \begin{pmatrix} 1 &amp; 1 &amp; -1 &amp; -1 \end{pmatrix}</annotation></semantics></math>
+y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo>=</mo><mn>0.5</mn></mrow><annotation encoding="application/x-tex">b = 0.5</annotation></semantics></math>,
+estimar las probabilidades y las predicciones de clase en base al modelo
+de regresión lineal. Generar la matriz de confusión y las métricas de
+evaluación de precisión, exhaustividad,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>F</mi><mn>1</mn></msub><annotation encoding="application/x-tex">F_1</annotation></semantics></math>
+y exactitud.</p></li>
+<li><p>A partir de los siguientes datos de entrenamiento:</p>
+<div class="center">
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;"><strong>x</strong></th>
+<th style="text-align: center;"><strong>y</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">1.5</td>
+<td style="text-align: center;">2</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">3</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">2.5</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">3.5</td>
+<td style="text-align: center;">4.5</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">6</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Estimar la recta de regresión que minimice el error cuadrático medio
+usando el algoritmo de mínimos cuadrados (nótese que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">b=0</annotation></semantics></math>).
+Evaluar el modelo usando MSE y MAE obtenido en los siguientes datos:</p>
+<div class="center">
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;"><strong>x</strong></th>
+<th style="text-align: center;"><strong>y</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">2.5</td>
+<td style="text-align: center;">3.5</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">4.8</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">8</td>
+</tr>
+</tbody>
+</table>
+</div></li>
+<li><p>Demostrar que la divergencia KL,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>D</mi><mo>=</mo><mi>𝔼</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">[</mo><mo>log</mo><mfrac><mrow><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">D = \mathbb{E}\big[ \log \frac{p(x)}{f(x)}\big]</annotation></semantics></math>,
+es siempre mayor a 0 y sólo igual a 0 sii
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f(x) = p(x)</annotation></semantics></math>
+para toda
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>.</p></li>
+<li><p>Demostrar que la solución al problema de la regresión lineal está
+dada por los parámetros:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mo>,</mo><mi>b</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>X</mi><mi>T</mi></msup><mi>X</mi><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo>−</mo><mn>1</mn></mrow></msup><msup><mi>X</mi><mi>T</mi></msup><mi>Y</mi></mrow><annotation encoding="application/x-tex">(w,b) = (X^TX)^{-1}X^TY</annotation></semantics></math>
+donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>X</mi><annotation encoding="application/x-tex">X</annotation></semantics></math>
+es la matriz de datos y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Y</mi><annotation encoding="application/x-tex">Y</annotation></semantics></math>
+el vector de valores de supervisión.</p></li>
+<li><p>Demostrar que si se asume que el logit es lineal, i.e.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>ln</mo><mfrac><mi>p</mi><mrow><mn>1</mn><mo>−</mo><mi>p</mi></mrow></mfrac><mo>=</mo><mi>w</mi><mi>x</mi><mo>+</mo><mi>b</mi></mrow><annotation encoding="application/x-tex">\ln \frac{p}{1-p} = wx+b</annotation></semantics></math>,
+entonces la probabilidad
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>
+está dada por
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><mn>1</mn><mrow><mn>1</mn><mo>+</mo><msup><mi>e</mi><mrow><mo>−</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mi>x</mi><mo>+</mo><mi>b</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></msup></mrow></mfrac></mrow><annotation encoding="application/x-tex">p = p(x) = \frac{1}{1 + e^{-(wx+b)}}</annotation></semantics></math></p></li>
+<li><p>Calcular los siguientes valores:</p>
+<ol>
+<li><p>Entropía cruzada de una variable con distribución real
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mi>e</mi><mi>r</mi><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mn>3</mn><mn>4</mn></mfrac><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">Ber(\frac{3}{4})</annotation></semantics></math>
+y distribución empírica
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mi>e</mi><mi>r</mi><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">Ber(\frac{1}{2})</annotation></semantics></math>.</p></li>
+<li><p>La divergencia KL de las distribuciones anteriores.</p></li>
+</ol></li>
+<li><p>Implementa los modelos de regresión lineal y regresión
+logística.</p></li>
+</ol>
+
+</body>
+</html>

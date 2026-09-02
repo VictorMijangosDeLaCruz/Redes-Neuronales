@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Redes feedforward</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Capas ocultas y redes
+feedforward</h1>
+<p class="date"> </p>
+</header>
+
+
+<p>Como se señaló en la Sección <a href="#sec:logicProblems"
+data-reference-type="ref"
+data-reference="sec:logicProblems">[sec:logicProblems]</a>, podemos
+tomar un conjunto de neuronas que, de forma conjunta, resuelvan un
+problema complejo como el <span class="smallcaps">Xor</span>. La
+dificultad es que no siempre podremos saber qué tipo de neuronas
+utilizar para cada problema particular. De hecho, dentro del aprendizaje
+automático lo que buscamos es justamente aprender los tipos de neuronas
+que puedan resolver el problema. Lo que haremos, entonces, es procesar
+la entrada en diferentes niveles hasta ser capaz, en un último nivel, de
+resolver el problema. Como hemos mencionado varias veces, el aprendizaje
+profundo es parte del aprendizaje representacional, por lo que lo que
+haremos es aprender una representación de los datos que sea linealmente
+separable.</p>
+<p>Para hacer esto, la idea esencial es aplicar una transformación a los
+datos de entrada
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>∈</mo><msup><mi>ℝ</mi><mi>d</mi></msup></mrow><annotation encoding="application/x-tex">x \in \mathbb{R}^d</annotation></semantics></math>
+que los lleve hacia un espacio en el que sean linealmente separables y,
+entonces, ahí aplicar un modelo lineal de una neurona. Es decir, debemos
+encontrar una transformación
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo>:</mo><msup><mi>ℝ</mi><mi>d</mi></msup><mo>→</mo><msup><mi>ℝ</mi><mi>m</mi></msup></mrow><annotation encoding="application/x-tex">h: \mathbb{R}^d \to \mathbb{R}^m</annotation></semantics></math>
+que tome los datos de entrada y los lleve hacia un espacio
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>ℝ</mi><mi>m</mi></msup><annotation encoding="application/x-tex">\mathbb{R}^m</annotation></semantics></math>,
+para un
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>
+arbitrario, donde exista una solución por medio del modelo de una
+neurona.</p>
+<p>En la Figura <a href="#fig:ReginesXOR" data-reference-type="ref"
+data-reference="fig:ReginesXOR">1.1</a> vemos una posible solución al
+problema <span class="smallcaps">Xor</span> bajo este esquema. En el
+lado derecho (b) se observa una transformación de los datos al espacio
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>ℝ</mi><mn>3</mn></msup><annotation encoding="application/x-tex">\mathbb{R}^3</annotation></semantics></math>
+donde existe un hiperplano separador que clasifica adecuadamente los
+datos. Las regiones de clasificación que se obtiene bajo esta
+transformación se observan en el lado izquierdo (a). Para obtener esta
+clasificación se aplica una neurona que toma los datos en
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>ℝ</mi><mn>3</mn></msup><annotation encoding="application/x-tex">\mathbb{R}^3</annotation></semantics></math>
+y los clasifica. El modelo final es la composición de la transformación
+más la neurona de salida que nos da la clasificación.</p>
+<figure id="fig:ReginesXOR">
+<figure>
+<img src="images/RegionsReLUXO.png" />
+<figcaption>Regiones de clasificación</figcaption>
+</figure>
+<figure>
+<img src="images/TransfXOR.png" />
+<figcaption>Transformación de los datos</figcaption>
+</figure>
+<figcaption>La solución al problema <span class="smallcaps">Xor</span>
+por medio de una red feedforward con una capa oculta</figcaption>
+</figure>
+<p>La idea esencial que radica en las redes profundas es el aprendizaje
+de representaciones de los datos de entrada que permitan la resolución
+del problema. Estas representaciones pueden realizarse de forma
+consecutiva por diferentes niveles en la red neuronal. A cada nivel en
+esta transformación de los datos lo llamaremos una capa oculta.</p>
+<div id="def:hiddenLayer" class="mydef">
+<p><strong>Definición 1.1</strong> (Capa oculta). <em>Una capa oculta en
+una red neuronal profunda es una transformación
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo>:</mo><msup><mi>ℝ</mi><mi>d</mi></msup><mo>→</mo><msup><mi>ℝ</mi><mi>m</mi></msup></mrow><annotation encoding="application/x-tex">h: \mathbb{R}^d \to \mathbb{R}^m</annotation></semantics></math>
+de los datos que tiene la forma:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>W</mi><mi>x</mi><mo>+</mo><mi>b</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">h(x) = g(Wx + b)</annotation></semantics></math>
+Con
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>W</mi><mo>∈</mo><msup><mi>ℝ</mi><mrow><mi>m</mi><mo>×</mo><mi>d</mi></mrow></msup></mrow><annotation encoding="application/x-tex">W \in \mathbb{R}^{m \times d}</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo>∈</mo><msup><mi>ℝ</mi><mi>m</mi></msup></mrow><annotation encoding="application/x-tex">b \in \mathbb{R}^m</annotation></semantics></math>
+y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>g</mi><mo>:</mo><mi>ℝ</mi><mo>→</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">g: \mathbb{R} \to \mathbb{R}</annotation></semantics></math>
+una función de activación que se aplica punto a punto.</em></p>
+</div>
+<p>Escribiremos en lo que sigue sólo
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo>=</mo><mi>g</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>W</mi><mi>x</mi><mo>+</mo><mi>b</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">h = g(Wx + b)</annotation></semantics></math>.
+Una capa oculta, entonces, puede verse como un conjunto de neuronas que
+toman una misma entrada. En la Figura <a href="#fig:FFN"
+data-reference-type="ref" data-reference="fig:FFN">1.2</a> podemos ver
+una red con una capa oculta. La capa oculta se compone de cuatro
+neuronas. A las neuronas de las capas ocultas podemos llamarles unidades
+(ocultas). Las unidades de una capa oculta se corresponden a la
+dimensión del vector resultante
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo>∈</mo><msup><mi>ℝ</mi><mi>m</mi></msup></mrow><annotation encoding="application/x-tex">h \in \mathbb{R}^m</annotation></semantics></math>.
+En esta figura se ha resaltado las conexiones de la primera neurona para
+hacer notar que podemos ver que una capa oculta se compone de un
+conjunto de neuronas conectadas a la misma entrada.</p>
+<figure id="fig:FFN">
+<img src="images/feedforw.png" />
+<figcaption>Ejemplo de una red feedforward con una capa oculta con 4
+unidades</figcaption>
+</figure>
+<p>También en la Figura <a href="#fig:FFN" data-reference-type="ref"
+data-reference="fig:FFN">1.2</a> se puede ver que la capa oculta está
+conectada a otra neurona; esta última neurona puede verse como el modelo
+de neurona que se encargará de dar la respuesta con base en la
+representación de la capa oculta. Llamaremos a esta parte de la red la
+<strong>capa de salida</strong>. Si la neurona en la capa de salida es
+un perceptrón, podemos hablar que nuestra red es un perceptrón
+multi-capa.</p>
+<p>Lo que estamos haciendo al introducir capas ocultas es hacer que los
+datos de entrada se procesen por otras neuronas antes de que se obtenga
+la respuesta de las neuronas de salida. Podemos introducir más de una
+capa oculta. Por ejemplo, se puede introducir una segunda capa oculta
+que tome como entrada a la representación obtenida por una capa oculta
+previa.</p>
+<div class="mydef">
+<p><strong>Definición 1.2</strong> (Red neuronal feedforward). <em>Una
+red neuronal del tipo feedforward con
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>
+capas ocultas es una función
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>:</mo><msup><mi>ℝ</mi><mi>d</mi></msup><mo>→</mo><msup><mi>ℝ</mi><msub><mi>m</mi><mrow><mi>K</mi><mo>+</mo><mn>1</mn></mrow></msub></msup></mrow><annotation encoding="application/x-tex">f:\mathbb{R}^d \to \mathbb{R}^{m_{K+1}}</annotation></semantics></math>
+definida como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>ϕ</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>W</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>K</mi><mo>+</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>K</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>+</mo><msup><mi>b</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>K</mi><mo>+</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f(x) = \phi(W^{(K+1)}  h^{(K)} + b^{(K+1)})</annotation></semantics></math>
+Tal que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>W</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>K</mi><mo>+</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>∈</mo><msup><mi>ℝ</mi><mrow><msub><mi>m</mi><mrow><mi>K</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>×</mo><msub><mi>m</mi><mi>K</mi></msub></mrow></msup></mrow><annotation encoding="application/x-tex">W^{(K+1)} \in \mathbb{R}^{m_{K+1} \times m_K}</annotation></semantics></math>
+y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>b</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>K</mi><mo>+</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>∈</mo><msup><mi>ℝ</mi><msub><mi>m</mi><mrow><mi>K</mi><mo>+</mo><mn>1</mn></mrow></msub></msup></mrow><annotation encoding="application/x-tex">b^{(K+1)} \in \mathbb{R}^{m_{K+1}}</annotation></semantics></math>
+son los pesos de la capa de salida,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϕ</mi><annotation encoding="application/x-tex">\phi</annotation></semantics></math>
+es la activación en la capa de salida y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>K</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>∈</mo><msup><mi>ℝ</mi><msub><mi>m</mi><mi>K</mi></msub></msup></mrow><annotation encoding="application/x-tex">h^{(K)} \in \mathbb{R}^{m_K}</annotation></semantics></math>
+es la representación oculta obtenida recursivamente como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>=</mo><msub><mi>g</mi><mn>1</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>W</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mi>x</mi><mo>+</mo><msup><mi>b</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">h^{(1)} = g_1(W^{(1)} x + b^{(1)})</annotation></semantics></math>
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>=</mo><msub><mi>g</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>W</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo>−</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>+</mo><msup><mi>b</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">h^{(k)} = g_k(W^{(k)} h^{(k-1)} + b^{(k)})</annotation></semantics></math>
+Para toda
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>∈</mo><mo stretchy="false" form="prefix">{</mo><mn>2</mn><mo>,</mo><mn>3</mn><mo>,</mo><mi>.</mi><mi>.</mi><mi>.</mi><mo>,</mo><mi>K</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">k \in \{2,3,...,K\}</annotation></semantics></math>,
+con
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>∈</mo><msup><mi>ℝ</mi><mi>d</mi></msup></mrow><annotation encoding="application/x-tex">x \in \mathbb{R}^d</annotation></semantics></math>
+entrada,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>W</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>∈</mo><msup><mi>ℝ</mi><mrow><msub><mi>m</mi><mi>k</mi></msub><mo>×</mo><msub><mi>m</mi><mrow><mi>k</mi><mo>−</mo><mn>1</mn></mrow></msub></mrow></msup></mrow><annotation encoding="application/x-tex">W^{(k)} \in \mathbb{R}^{m_k \times m_{k-1}}</annotation></semantics></math>
+y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>b</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>∈</mo><msup><mi>ℝ</mi><msub><mi>m</mi><mi>k</mi></msub></msup></mrow><annotation encoding="application/x-tex">b^{(k)} \in \mathbb{R}^{m_k}</annotation></semantics></math>
+los pesos en cada capa y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>g</mi><mi>k</mi></msub><annotation encoding="application/x-tex">g_k</annotation></semantics></math>
+las funciones de activación.</em></p>
+</div>
+<p>Como nos podemos percatar de la definición anterior, las redes
+feedforward se basan en la idea de los modelos de neuronas, pero en
+lugar de tomar como entrada los estímulos (datos) de manera cruda,
+procesan los datos para obtener una representación adecuada para la
+solución del problema. Esta representación se obtiene por la aplicación
+consecutiva de capas ocultas. Las capas ocultas también se basan en
+neuronas. Todas las capas, incluyendo las capas de salida tienen una
+forma similar, pero cabe señalar que los pesos de las conexiones y el
+bias no son los mismos en cada capa. Las funciones de activación también
+pueden variar entre capa y capa, aunque en algunos casos prácticos se
+suele usar la misma función de activación en todas las capas para
+simplificar la construcción de la red, excepto en la capa de salida, la
+cual tiene que ser elegida dependiendo del problema que se busque
+resolver (por esto hemos denotado la función de activación de la capa de
+salida de forma distinta).</p>
+<p>Ya que cada capa está definida como un modelo de neurona, podemos
+también separar las capas en pre-activación y activación. La
+<strong>pre-activación</strong> en cada capa será denotada como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>a</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>=</mo><msup><mi>W</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo>−</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>+</mo><msup><mi>b</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup></mrow><annotation encoding="application/x-tex">\label{eq:PreactivationFeedForward}
+    a^{(k)} = W^{(k)} h^{(k-1)} + b^{(k)}</annotation></semantics></math>
+Por su parte, la <strong>activación</strong> en cada capa será denotada
+como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>=</mo><msub><mi>g</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>a</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\label{eq:ActivationFeedForward}
+    h^{(k)} = g_k(a^{(k)})</annotation></semantics></math> Usaremos una
+notación similar para la capa de salida, teniendo
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>ϕ</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>a</mi><mrow><mi>K</mi><mo>+</mo><mn>1</mn></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f(x) = \phi(a^{K+1})</annotation></semantics></math>,
+donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>a</mi><mrow><mi>K</mi><mo>+</mo><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">a^{K+1}</annotation></semantics></math>
+es la pre-activación de esta capa. Esta notación nos permitirá
+simplificar algunos cálculos sobre las redes feedforward.</p>
+<p>El resultado de las capas profundas son vectores
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>∈</mo><msup><mi>ℝ</mi><msub><mi>m</mi><mi>k</mi></msub></msup></mrow><annotation encoding="application/x-tex">h^{(k)} \in \mathbb{R}^{m_k}</annotation></semantics></math>
+cuyas entradas representan las unidades o neuronas. Cada capa oculta
+cuenta con
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mi>k</mi></msub><annotation encoding="application/x-tex">m_k</annotation></semantics></math>
+neuronas. Los valores de cada
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mi>k</mi></msub><annotation encoding="application/x-tex">m_k</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>=</mo><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mo>,</mo><mi>.</mi><mi>.</mi><mi>.</mi><mo>,</mo><mi>K</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">k = \{1,...,K\}</annotation></semantics></math>,
+para cada capa oculta son hiperparámetros. Asimismo, el número de capas
+ocultas
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>
+es un hiperparámetro.</p>
+<div class="mydef">
+<p><strong>Definición 1.3</strong> (Anchura). <em>La anchura de una red
+neuronal está definida como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mi>i</mi><mi>d</mi><mi>t</mi><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>f</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>max</mo><mo stretchy="false" form="prefix">{</mo><msub><mi>m</mi><mi>k</mi></msub><mo>:</mo><mi>k</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>.</mi><mi>.</mi><mi>.</mi><mo>,</mo><mi>K</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">width(f) = \max\{m_k : k = 1,...,K\}</annotation></semantics></math>
+Donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mi>k</mi></msub><annotation encoding="application/x-tex">m_k</annotation></semantics></math>
+es el número de unidades ocultas en la capa
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>.
+Es decir, la anchura es el máximo número de unidades con las que cuenta
+una red neuronal.</em></p>
+</div>
+<div class="mydef">
+<p><strong>Definición 1.4</strong> (Profundidad). <em>La profundidad de
+una red feedforwrd es el número
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>
+de capas ocultas con las que cuenta.</em></p>
+</div>
+<p>Determinar la anchura y la profundidad de una red feedforward influye
+en su capacidad para resolver un problema. Podemos decir, por ejemplo,
+que una red feedforward con profundidad
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">K = 0</annotation></semantics></math>
+define un modelo lineal que, dependiendo de la activación, puede ser el
+perceptrón, regresión logística o regresión lineal. Es decir, los
+modelos de una sola neurona, modelos lineales, son un tipo de red
+neuronal feedforward sin capas ocultas. El número de capas y unidades
+ocultas definirá la arquitectura.</p>
+<div class="mydef">
+<p><strong>Definición 1.5</strong> (Arquitectura). <em>La arquitectura
+de una red feedforward es el conjunto
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">{</mo><mi>K</mi><mo>,</mo><msub><mi>m</mi><mn>1</mn></msub><mo>,</mo><mi>.</mi><mi>.</mi><mo>,</mo><msub><mi>m</mi><mi>K</mi></msub><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\{K, m_1,..,m_K\}</annotation></semantics></math>;
+es decir, el número de capas ocultas y las unidades ocultas en cada
+capa.</em></p>
+</div>
+<p>La arquitectura de una red feedforward define su forma. Asimismo,
+influirá en su capacidad, pues sabemos que una red sin capas ocultas no
+es capaz de resolver problemas no linealmente separables. De hecho,
+mostraremos que basta una capa oculta para aproximar cualquier función,
+aunque el número de unidades ocultas en esta capa puede ser muy grande.
+Podemos notar que el número de parámetros o pesos de conexiones de una
+red neuronal está dada por la fórmula:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">|</mo><mi>θ</mi><mo stretchy="true" form="postfix">|</mo></mrow><mo>=</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mrow><mi>K</mi><mo>+</mo><mn>1</mn></mrow></munderover><msub><mi>m</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>m</mi><mrow><mi>k</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>+</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">|\theta| = \sum_{k=1}^{K+1} m_k(m_{k-1} + 1)</annotation></semantics></math>
+donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>m</mi><mn>0</mn></msub><mo>=</mo><mi>d</mi></mrow><annotation encoding="application/x-tex">m_0 = d</annotation></semantics></math>
+es el número de entradas o la dimensión de los datos y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>m</mi><mrow><mi>K</mi><mo>+</mo><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">m_{K+1}</annotation></semantics></math>
+es el número de neuronas de la capa salida.</p>
+<p>En la arquitectura también se pueden especificar las funciones de
+activación. Generalmente las funciones de activación
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math>
+tienen ciertas propiedades, como no ser polinómicas o ser sigmoidales.
+La función en la salida responde al problema que se quiera resolver. Las
+funciones de activación tienen especial importancia en garantizar las
+capacidades de aproximación de las redes neuronales, por los que las
+revisamos a detalle.</p>
+<h3 id="funciones-de-activación">Funciones de activación</h3>
+<p>Las funciones de activación representan la forma en que las neuronas
+emiten una señal de salida. Dependiendo de que tipo de función de
+activación escojamos, podemos tener diferentes respuestas a problemas
+particulares. Por ejemplo, en el perceptrón se utiliza una función
+indicadora
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mn>1</mn><mrow><mo>&gt;</mo><mn>0</mn></mrow></msub><annotation encoding="application/x-tex">1_{&gt;0}</annotation></semantics></math>
+que emite un valor 1 si la pre-activación es positiva y 0 en otro caso.
+Como utilizaremos métodos basados en gradiente para el entrenamiento de
+las redes neuronales, las funciones de activación deben ser derivables;
+por esta razón es que en la práctica no se suele usar esta función
+indicadora. Sin embargo, como hemos visto, podemos realizar una
+clasificación con una función sigmoide.</p>
+<p>En general, existen ciertos criterios para elegir una función de
+activación. En primer lugar, debemos considerar si la activación es en
+las capas ocultas o en la capa de salida. En las capas ocultas debemos
+garantizar que la función de activación elegida nos garantice la
+aproximación universal. Algunos de los criterios para esto es que la
+función no sea polinomial. De hecho, funciones como el coseno pueden
+usarse como funciones de activación en las capas ocultas. En la práctica
+suelen usarse funciones de activación que además tengan una derivada
+sencilla. Una función de activación clásica es la función sigmoide.</p>
+<div class="mydef">
+<p><strong>Definición 1.6</strong> (Función sigmoide). <em>Dada una
+pre-activación
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mo>∈</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">a \in \mathbb{R}</annotation></semantics></math>
+de una unidad neuronal, la función de activación sigmoide se define
+como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>a</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><mn>1</mn><mrow><mn>1</mn><mo>+</mo><msup><mi>e</mi><mrow><mo>−</mo><mi>a</mi></mrow></msup></mrow></mfrac></mrow><annotation encoding="application/x-tex">\sigma(a) = \frac{1}{1 + e^{-a}}</annotation></semantics></math></em></p>
+</div>
+<p>La función sigmoide define una probabilidad de una variable binaria,
+como lo hemos visto en la Sección <a href="#sec:LogRegression"
+data-reference-type="ref"
+data-reference="sec:LogRegression">[sec:LogRegression]</a>. Los valores
+0 y 1 sólo se alcanzan en el límite. La derivada de la función sigmoide
+es sencilla, pues se expresa en términos de sí misma, lo que permite que
+la implementación de la función y su derivada sea eficiente, pues no
+deben hacerse nuevos cálculos para la obtención del gradiente.</p>
+<div class="prop">
+<p><strong>Proposición 1.1</strong>. <em>La derivada de la función
+sigmoide está dada como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi><mi>′</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>a</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>σ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>a</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>σ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>a</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\sigma&#39;(a) = \sigma(a)\big(1-\sigma(a)\big)</annotation></semantics></math></em></p>
+</div>
+<div class="mydef">
+<p><strong>Definición 1.7</strong> (Tangente hiperbólica). <em>Dada una
+pre-activación
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mo>∈</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">a \in \mathbb{R}</annotation></semantics></math>
+de una unidad neuronal, la función de activación de tangente hiperbólica
+se define como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>tanh</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>a</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><mrow><msup><mi>e</mi><mi>a</mi></msup><mo>−</mo><msup><mi>e</mi><mrow><mo>−</mo><mi>a</mi></mrow></msup></mrow><mrow><msup><mi>e</mi><mi>a</mi></msup><mo>+</mo><msup><mi>e</mi><mrow><mo>−</mo><mi>a</mi></mrow></msup></mrow></mfrac></mrow><annotation encoding="application/x-tex">\tanh(a) = \frac{e^a - e^{-a}}{e^a + e^{-a}}</annotation></semantics></math></em></p>
+</div>
+<p>La tangente hiperbólica comparte propiedades con la función sigmoide
+pues ambas son acotadas y tienen forma de S. Pero la tangente
+hiperbólica toma valores entre -1 y 1, llegando a estos valores sólo en
+sus límites. La tangente hiperbólica se ha utilizado en extenso para la
+activación en las capas ocultas pues permite separar valores negativos,
+que suelen tener una influencia negativa en la decisión de la salida, de
+los valores positivos. Asimismo, su derivada se expresa en términos de
+sí misma.</p>
+<div class="prop">
+<p><strong>Proposición 1.2</strong>. <em>La derivada de la tangente
+hiperbólica está dada como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>tanh</mo><mi>′</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>a</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>1</mn><mo>−</mo><msup><mo>tanh</mo><mn>2</mn></msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>a</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\tanh&#39;(a) = 1 - \tanh^2(a)</annotation></semantics></math></em></p>
+</div>
+<p>Las funciones sigmoide y tangente hiperbólica fueron de las primeras
+funciones de activación utilizadas para las capas ocultas en las redes
+profundas. De hecho, las primeras demostraciones sobre la capacidad de
+aproximación de funciones de las redes feedforward se basaba en las
+características de estas funciones (véase la Sección <a
+href="#sec:UniversalApproximator" data-reference-type="ref"
+data-reference="sec:UniversalApproximator">1.2</a>). Sin embargo, estas
+funciones suelen mostrar lo que se conoce como el problema del
+desvanecimiento del gradiente, esto es, pueden presentar un gradiente 0
+en la implementación debido a que con valores grandes las funciones se
+aplastan.</p>
+<p>Una alternativa a las funciones acotadas como la sigmoide y la
+tangente hiperbólica son funciones que tengan valores altos para los
+valores positivos, mientras que los valores negativos les asignen
+valores bajos. Una de ellas es la función softplus.</p>
+<div class="mydef">
+<p><strong>Definición 1.8</strong> (Función softplus). <em>Dada una
+pre-activación
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mo>∈</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">a \in \mathbb{R}</annotation></semantics></math>
+de una unidad neuronal, la función de activación softplus se define
+como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mi>o</mi><mi>f</mi><mi>t</mi><mi>p</mi><mi>l</mi><mi>u</mi><mi>s</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>a</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>ln</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>+</mo><msup><mi>e</mi><mi>a</mi></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">softplus(a) = \ln(1+e^{a})</annotation></semantics></math></em></p>
+</div>
+<p>La función softplus hace los valores negativos pequeños, mientras que
+conserva los valores positivos. Se puede observar que en los valores
+positivos grandes la función es cercana a la identidad, mientras que en
+los valores negativos grandes es cercano a 0. La función softmax también
+muestra una derivación simple.</p>
+<div class="prop">
+<p><strong>Proposición 1.3</strong>. <em>La derivada de la función
+softplus es la función sigmoide; esto es:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mi>o</mi><mi>f</mi><mi>t</mi><mi>p</mi><mi>l</mi><mi>u</mi><mi>s</mi><mi>′</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>a</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>σ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>a</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">softplus&#39;(a) = \sigma(a)</annotation></semantics></math></em></p>
+</div>
+<p>La derivada de la softplus no se define en términos de sí misma, pero
+se puede aprovechar el cálculo de la exponencial en ésta para su
+derivada. En la práctica, sin embargo, la softplus no tiene tan buenos
+resultados como su versión dura, la función ReLU. La función ReLU es
+actualmente la función de activación estándar para las redes profundas.
+Como se puede ver en la parte superior de la Figura <a
+href="#fig:ReLU Act" data-reference-type="ref"
+data-reference="fig:ReLU Act">1.3</a>, la función ReLU es una versión
+rígida de la softplus. La softplus, por tanto, es una versión suave de
+esta última. A pesar de esto, la función ReLU muestra mejor desempeño en
+los ejemplos reales.</p>
+<figure id="fig:ReLU Act">
+<img src="images/Activation.png" style="width:70.0%" />
+<figcaption>Funciones de activación basadas en
+rectificación</figcaption>
+</figure>
+<div class="mydef">
+<p><strong>Definición 1.9</strong> (Función ReLU). <em>Dada una unidad
+de pre-activación
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mo>∈</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">a \in \mathbb{R}</annotation></semantics></math>,
+la función ReLU (<em>Rectified Linear Unit</em>) es la función de
+activación definida como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mi>e</mi><mi>L</mi><mi>U</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>a</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>max</mo><mo stretchy="false" form="prefix">{</mo><mn>0</mn><mo>,</mo><mi>a</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">ReLU(a) = \max\{0, a\}</annotation></semantics></math></em></p>
+</div>
+<p>La función ReLU, a pesar de su sencillez, es capaz de solucionar
+problemas complejos cuando se utiliza como función de activación en las
+capas ocultas. Su derivada también se expresa en términos simples.</p>
+<div class="prop">
+<p><strong>Proposición 1.4</strong>. <em>La derivada de la función ReLU
+está dada por:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mi>e</mi><mi>L</mi><mi>U</mi><mi>′</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>a</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><mn>1</mn><mrow><mo stretchy="true" form="prefix">|</mo><mi>a</mi><mo stretchy="true" form="postfix">|</mo></mrow></mfrac><mo>max</mo><mo stretchy="false" form="prefix">{</mo><mn>0</mn><mo>,</mo><mi>a</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">ReLU&#39;(a) = \frac{1}{|a|}\max\{0, a\}</annotation></semantics></math>
+Excepto en 0, donde no está definida.</em></p>
+</div>
+<p>Es decir, la derivada de la función ReLU es 0 en los valores
+negativos y 1 en los positivos. En el 0, la derivada no está definida,
+pero asumimos que los valores de pre-activación no tomarán este valor.
+La función ReLU es la base de muchas arquitecturas actuales, puesto que
+también define redes que son aproximadores universales <span
+class="citation" data-cites="huang2020relu"></span>, además que son más
+simples que otras funciones de activación. A partir de la función ReLU
+se han buscado otras funciones similares, donde los valores negativos
+tengan salidas pequeñas, mientras que la parte positiva sea lineal. Una
+generalización de la función ReLU es la función leaky ReLU:</p>
+<div class="mydef">
+<p><strong>Definición 1.10</strong> (Leaky ReLU). <em>Dada una unidad de
+pre-activación
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mo>∈</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">a \in \mathbb{R}</annotation></semantics></math>,
+la función leaky ReLU es la función de activación definida como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mi>e</mi><mi>a</mi><mi>k</mi><mi>y</mi><mi>R</mi><mi>e</mi><mi>L</mi><mi>U</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>a</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>max</mo><mo stretchy="false" form="prefix">{</mo><mn>0</mn><mo>,</mo><mi>a</mi><mo stretchy="false" form="postfix">}</mo><mo>+</mo><mi>β</mi><mo>min</mo><mo stretchy="false" form="prefix">{</mo><mn>0</mn><mo>,</mo><mi>a</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">LeakyReLU(a) = \max\{0, a\} + \beta \min\{0, a\}</annotation></semantics></math></em></p>
+</div>
+<p>La función leaky ReLU no lleva los valores negativos a 0, sino que
+los valores negativos van a estar escalados por una constante
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>,
+generalmente pequeña (véase Figura <a href="#fig:ReLU Act"
+data-reference-type="ref" data-reference="fig:ReLU Act">1.3</a>). Si
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\beta = 0</annotation></semantics></math>,
+la función leaky ReLU es la función ReLU. La derivada de esta función es
+1 si los valores de entrada son positivos y
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>
+en otro caso.</p>
+<p>Basada en la función ReLU, existen varias funciones; mencionamos dos
+más aquí, la función ELU y la función SiLU.</p>
+<div class="mydef">
+<p><strong>Definición 1.11</strong> (Función ELU). <em>Dada una unidad
+de pre-activación
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mo>∈</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">a \in \mathbb{R}</annotation></semantics></math>
+la función ELU (<em>Exponential Linear Unit</em>) es la función de
+activación definida como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>E</mi><mi>L</mi><mi>U</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>a</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mi>a</mi></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">si </mtext><mspace width="0.333em"></mspace></mrow><mi>a</mi><mo>&gt;</mo><mn>0</mn></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mi>β</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>e</mi><mi>a</mi></msup><mo>−</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">si </mtext><mspace width="0.333em"></mspace></mrow><mi>a</mi><mo>≤</mo><mn>0</mn></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">ELU(a) = \begin{cases} a &amp; \text{si } a &gt; 0 \\ \beta (e^a - 1) &amp; \text{si } a \leq 0 \end{cases}</annotation></semantics></math></em></p>
+</div>
+<p>La función ELU es cercana a 0 en los valores negativos y, al igual
+que leaky ReLU, su pendiente en estos valores está ligada a la constante
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>.
+A diferencia de las funciones ReLU y leaky ReLU, la función ELU sí es
+derivable en todos los puntos del dominio. En la Figura <a
+href="#fig:ReLU Act" data-reference-type="ref"
+data-reference="fig:ReLU Act">1.3</a> se puede ver que esta función es
+suave cercano al 0. Asimismo, puede observarse que si
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\beta = 0</annotation></semantics></math>,
+entonces la función ELU es la función ReLU. Finalmente, la derivada de
+la función ELU es sencilla.</p>
+<div class="prop">
+<p><strong>Proposición 1.5</strong>. <em>La derivada de la función ELU
+está dada como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>E</mi><mi>L</mi><mi>U</mi><mi>′</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>a</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mn>1</mn></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">si </mtext><mspace width="0.333em"></mspace></mrow><mi>a</mi><mo>&gt;</mo><mn>0</mn></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mi>β</mi><msup><mi>e</mi><mi>a</mi></msup></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">si </mtext><mspace width="0.333em"></mspace></mrow><mi>a</mi><mo>≤</mo><mn>0</mn></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">ELU&#39;(a) = \begin{cases}
+        1 &amp; \text{si } a &gt; 0 \\
+        \beta e^a &amp; \text{si } a \leq 0
+    \end{cases}</annotation></semantics></math></em></p>
+</div>
+<div class="mydef">
+<p><strong>Definición 1.12</strong> (Función SiLU). <em>Dada una unidad
+de pre-activación
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mo>∈</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">a \in \mathbb{R}</annotation></semantics></math>
+la función SiLU (<em>Sigmoid Linear Unit</em>) es la función de
+activación definida como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mi>i</mi><mi>L</mi><mi>U</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>a</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>a</mi><mi>σ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>a</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">SiLU(a) = a \sigma(a)</annotation></semantics></math></em></p>
+</div>
+<p>La función SiLU es suave en todas partes y, al igual que ELU, tiene
+derivadas en todos sus puntos. Se basa en la función sigmoide, pero al
+multiplicar por la pre-activación
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>a</mi><annotation encoding="application/x-tex">a</annotation></semantics></math>
+la parte positiva tiene un comportamiento casi lineal (la función
+sigmoide es cercana a 1 en valores grandes), mientras que con valores
+negativos es cercana a 0 (en valores negativos la función sigmoide es
+cercana a 0). Por tanto, la función SiLU tiene un comportamiento similar
+a la ReLU pero de manera suave.</p>
+<p>Las funciones de activación tienen impacto en la resolución del
+problema al que nos estamos enfrentando. En las capas ocultas es común
+usar alguna de estas funciones de activación: sigmoide, tangente
+hiperbólica, softplus, ReLU, leaky ReLU, ELU, SiLU, o alguna otra
+función similar. Debemos tomar en cuenta que la función sea derivable y
+que, además, pueda asegurar la propiedad de aproximador universal. La
+elección de una u otra función puede afectar la forma de aprendizaje. Ya
+mencionamos que las funciones sigmoide o tangente hiperbólica pueden dar
+pie a desvanecimiento del gradiente, lo que impedirá que la red neuronal
+aprenda a resolver el problema. El uso de la función ReLU puede llevar a
+usar más unidades ocultas. Si bien es recomendada en la práctica el uso
+de la función ReLU o sus derivadas, es claro que existen diferencias
+entre cada función.</p>
+<figure id="fig:ClassAct">
+<figure>
+<img src="images/TanhClass.png" />
+<figcaption>Tangente hiperbólica</figcaption>
+</figure>
+<figure>
+<img src="images/ReLUClas.png" />
+<figcaption>ReLU</figcaption>
+</figure>
+<figcaption>Regiones de clasificación de la función tangente hiperbólica
+y la función ReLU</figcaption>
+</figure>
+<p>En la Figura <a href="#fig:ClassAct" data-reference-type="ref"
+data-reference="fig:ClassAct">1.4</a> se muestra las regiones de
+clasificación del mismo problema con una redes con la misma arquitectura
+variando las funciones de activación de la capa oculta. Como se puede
+observar, la función de tangente hiperbólica encuentra regiones suaves,
+mientras que las regiones de clasificación de la ReLU son rígidas. La
+función ReLU define las regiones de clasificación en base a politopos
+(generalizaciones de los polígonos a dimensiones altas). En la práctica
+la selección de las funciones de activación muchas veces se hace de
+manera experimental.</p>
+<p>Las funciones de activación que hemos revisado se utilizan
+principalmente en las capas ocultas. En la capa de salida, la selección
+de una función de activación debe responder a la tarea específica que
+buscamos resolver. Si bien podemos usar cualquier función derivable en
+la capa de salida según la tarea que busquemos resolver, las selección
+de la activación dependerá del problema.</p>
+<ul>
+<li><p><strong>Regresión:</strong> Un problema de regresión tiene como
+salida un valor real continuo, por lo que se suele usar una activación
+lineal o identidad; es decir, no se aplica una función de activación,
+por lo que nuestra red neuronal será de la forma:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>W</mi><mi>h</mi><mo>+</mo><mi>b</mi></mrow><annotation encoding="application/x-tex">f(x) = Wh + b</annotation></semantics></math>
+Con
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>
+la última capa oculta. Aunque si se busca acotar los valores reales se
+puede usar alguna función de activación, como la ReLU que sólo obtendrá
+valores positivos.</p></li>
+<li><p><strong>Clasificación:</strong> El problema de clasificación da
+como salida valores discretos y finitos bien definidos. Debido a que el
+aprendizaje en redes profundas requiere de funciones derivables, la
+clasificación se basa en maximizar las probabilidades. Por lo que las
+funciones de activación pueden ser la sigmoide (en caso de una
+clasificación binaria en una red con una sola neurona de salida) o la
+función Softmax (Definición <a href="#def:Softmax"
+data-reference-type="ref"
+data-reference="def:Softmax">1.13</a>).</p></li>
+<li><p><strong>Estimación de probabilidad:</strong> Los problemas de
+estimación de probabilidad, como los de modelos generativos, estiman una
+probabilidad de salida, por lo que también utilizan funciones de
+activación basadas en probabilidad, principalmente la función
+Softmax.</p></li>
+</ul>
+<p>Hasta ahora no hemos revisado la función Softmax. esta es una de las
+funciones con las que estaremos trabajando a lo largo del texto, ya que
+suele ser una de las más utilizadas dado que es útil tanto en la
+clasificación, como en la estimación de probabilidad. De hecho, es común
+que, a pesar de tener un problema de clasificación binaria, se utilice
+la función Softmax (con dos neuronas de salida) en lugar de la sigmoide
+(con una sola neurona de salida).</p>
+<div id="def:Softmax" class="mydef">
+<p><strong>Definición 1.13</strong> (Función softmax). <em>Dada un
+vector de neuronas
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>a</mi><mi>T</mi></msup><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>a</mi><mn>1</mn></msub></mtd><mtd columnalign="center" style="text-align: center"><mi>⋯</mi></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>a</mi><mi>m</mi></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">a^T = \begin{pmatrix} a_1 &amp; \cdots &amp; a_m \end{pmatrix}</annotation></semantics></math>,
+la función de activación Softmax para la
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>-ésima
+neurona se define como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mi>o</mi><mi>f</mi><mi>t</mi><mi>m</mi><mi>a</mi><mi>x</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>a</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><msup><mi>e</mi><msub><mi>a</mi><mi>i</mi></msub></msup><mrow><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>m</mi></munderover><msup><mi>e</mi><msub><mi>a</mi><mi>j</mi></msub></msup></mrow></mfrac></mrow><annotation encoding="application/x-tex">Softmax(a_i) = \frac{e^{a_i}}{\sum_{j=1}^m e^{a_j}}</annotation></semantics></math></em></p>
+</div>
+<p>La función Softmax se interpreta como una probabilidad cuando tenemos
+múltiples valores de salida. Esta función depende de todos los valores
+de salida por lo que, a diferencia de las funciones de activación
+previas, no se aplica punto a punto, si no que requiere del conocimiento
+de los valores de pre-activación de todas las otras neuronas en la capa.
+Cabe mencionar que la función Softmax se utiliza en la capa de salida y
+no en las capas ocultas. Como hemos mencionado, una parte importante de
+estas funciones es que todas son derivables y que, además, sus derivadas
+son fáciles de expresar. La función Softmax cumple esto, pues su
+derivada se expresa en términos de la misma función.</p>
+<div class="prop">
+<p><strong>Proposición 1.6</strong>. <em>Las derivadas parciales de la
+función Softmax están dadas por:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mrow><mi>∂</mi><mi>S</mi><mi>o</mi><mi>f</mi><mi>t</mi><mi>m</mi><mi>a</mi><mi>x</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>a</mi><mi>j</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mi>∂</mi><msub><mi>a</mi><mi>i</mi></msub></mrow></mfrac><mo>=</mo><mi>S</mi><mi>o</mi><mi>f</mi><mi>t</mi><mi>m</mi><mi>a</mi><mi>x</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>a</mi><mi>j</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>δ</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub><mo>−</mo><mi>S</mi><mi>o</mi><mi>f</mi><mi>t</mi><mi>m</mi><mi>a</mi><mi>x</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>a</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\frac{\partial Softmax(a_j)}{\partial a_i}  = Softmax(a_j)(\delta_{i,j} - Softmax(a_i))</annotation></semantics></math></em></p>
+</div>
+<div class="proof">
+<p><em>Proof.</em> Expresemos la función Softmax sobre la pre-activación
+de salida
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>a</mi><mi>i</mi></msub><annotation encoding="application/x-tex">a_i</annotation></semantics></math>
+como
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\phi_i</annotation></semantics></math>,
+esto es
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϕ</mi><mi>i</mi></msub><mo>=</mo><mfrac><msup><mi>e</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>a</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></msup><mrow><msub><mo>∑</mo><mi>j</mi></msub><msup><mi>e</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>a</mi><mi>j</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></msup></mrow></mfrac></mrow><annotation encoding="application/x-tex">\phi_i = \frac{e^{(a_i)}}{ \sum_j e^{(a_j)}}</annotation></semantics></math>.
+Tómese el logaritmo
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>ln</mo><msub><mi>ϕ</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">\ln \phi_i</annotation></semantics></math>
+de tal forma que tenemos que:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mrow><mi>∂</mi><mo>ln</mo><msub><mi>ϕ</mi><mi>j</mi></msub></mrow><mrow><mi>∂</mi><msub><mi>a</mi><mi>i</mi></msub></mrow></mfrac><mo>=</mo><mfrac><mn>1</mn><msub><mi>ϕ</mi><mi>j</mi></msub></mfrac><mfrac><mrow><mi>∂</mi><msub><mi>ϕ</mi><mi>j</mi></msub></mrow><mrow><mi>∂</mi><msub><mi>a</mi><mi>i</mi></msub></mrow></mfrac></mrow><annotation encoding="application/x-tex">\frac{\partial \ln \phi_j}{\partial a_i} = \frac{1}{\phi_j} \frac{\partial \phi_j}{\partial a_i}</annotation></semantics></math>
+Y de aquí, podemos ver que:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mrow><mi>∂</mi><msub><mi>ϕ</mi><mi>j</mi></msub></mrow><mrow><mi>∂</mi><msub><mi>a</mi><mi>i</mi></msub></mrow></mfrac><mo>=</mo><msub><mi>ϕ</mi><mi>j</mi></msub><mfrac><mrow><mi>∂</mi><mo>ln</mo><msub><mi>ϕ</mi><mi>j</mi></msub></mrow><mrow><mi>∂</mi><msub><mi>a</mi><mi>i</mi></msub></mrow></mfrac></mrow><annotation encoding="application/x-tex">\frac{\partial \phi_j}{\partial a_i} = \phi_j \frac{\partial \ln \phi_j}{\partial a_i}</annotation></semantics></math>
+Falta derivar el término de la derecha:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><mfrac><mrow><mi>∂</mi><mo>ln</mo><msub><mi>ϕ</mi><mi>j</mi></msub></mrow><mrow><mi>∂</mi><msub><mi>a</mi><mi>i</mi></msub></mrow></mfrac></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mfrac><mi>∂</mi><mrow><mi>∂</mi><msub><mi>a</mi><mi>i</mi></msub></mrow></mfrac><mo>ln</mo><mfrac><msup><mi>e</mi><msub><mi>a</mi><mi>j</mi></msub></msup><mrow><munder><mo>∑</mo><mi>k</mi></munder><msup><mi>e</mi><msub><mi>a</mi><mi>k</mi></msub></msup></mrow></mfrac></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mfrac><mi>∂</mi><mrow><mi>∂</mi><msub><mi>a</mi><mi>i</mi></msub></mrow></mfrac><mo>ln</mo><msup><mi>e</mi><msub><mi>a</mi><mi>j</mi></msub></msup><mo>−</mo><mfrac><mi>∂</mi><mrow><mi>∂</mi><msub><mi>a</mi><mi>i</mi></msub></mrow></mfrac><mo>ln</mo><munder><mo>∑</mo><mi>k</mi></munder><msup><mi>e</mi><msub><mi>a</mi><mi>k</mi></msub></msup></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mfrac><mrow><mi>∂</mi><msub><mi>a</mi><mi>j</mi></msub></mrow><mrow><mi>∂</mi><msub><mi>a</mi><mi>i</mi></msub></mrow></mfrac><mo>−</mo><mfrac><mn>1</mn><mrow><munder><mo>∑</mo><mi>k</mi></munder><msup><mi>e</mi><msub><mi>a</mi><mi>k</mi></msub></msup></mrow></mfrac><mfrac><mrow><mi>∂</mi><msub><mi>a</mi><mi>j</mi></msub></mrow><mrow><mi>∂</mi><msub><mi>a</mi><mi>i</mi></msub></mrow></mfrac><munder><mo>∑</mo><mi>k</mi></munder><msup><mi>e</mi><msub><mi>a</mi><mi>k</mi></msub></msup></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><msub><mi>δ</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub><mo>−</mo><mfrac><msup><mi>e</mi><msub><mi>a</mi><mi>i</mi></msub></msup><mrow><munder><mo>∑</mo><mi>k</mi></munder><msup><mi>e</mi><msub><mi>a</mi><mi>k</mi></msub></msup></mrow></mfrac></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><msub><mi>δ</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub><mo>−</mo><msub><mi>ϕ</mi><mi>i</mi></msub></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+    \frac{\partial \ln \phi_j}{\partial a_i} &amp;= \frac{\partial}{\partial a_i} \ln \frac{e^{a_j}}{\sum_k e^{a_k}} \\
+    &amp;= \frac{\partial}{\partial a_i} \ln e^{a_j} - \frac{\partial}{\partial a_i} \ln \sum_k e^{a_k} \\
+    &amp;= \frac{\partial a_j}{\partial a_i} - \frac{1}{\sum_k e^{a_k}}\frac{\partial a_j}{\partial a_i} \sum_k e^{a_k} \\
+    &amp;= \delta_{i,j} - \frac{e^{a_i}}{\sum_k e^{a_k}} \\
+    &amp;= \delta_{i,j} - \phi_i
+\end{aligned}</annotation></semantics></math></p>
+<p>Por tanto, tenemos que:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mrow><mi>∂</mi><msub><mi>ϕ</mi><mi>j</mi></msub></mrow><mrow><mi>∂</mi><msub><mi>a</mi><mi>i</mi></msub></mrow></mfrac><mo>=</mo><msub><mi>ϕ</mi><mi>j</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>δ</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub><mo>−</mo><msub><mi>ϕ</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\frac{\partial \phi_j}{\partial a_i}  = \phi_j(\delta_{i,j} - \phi_i)</annotation></semantics></math> ◻</p>
+</div>
+<p>La derivada de la función Softmax tiene similitudes con la de la
+función sigmoide. Esto no es casualidad, la función Softmax puede verse
+como una generalización de la función sigmoide. Supongamos que tenemos
+una red feedforward con dos neuronas de salida (por ejemplo en
+clasificación binaria). Tenemos entonces que la pre-activación en la
+salida es un vector
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>a</mi><mi>T</mi></msup><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><msub><mi>a</mi><mn>1</mn></msub></mtd><mtd columnalign="center" style="text-align: center"><msub><mi>a</mi><mn>2</mn></msub></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">a^T = \begin{pmatrix}
+    a_1 &amp; a_2
+\end{pmatrix}</annotation></semantics></math>. Si tomamos
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>a</mi><mn>2</mn></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">a_2 = 0</annotation></semantics></math>
+para todo valor de entrada, podemos observar que la función Softmax para
+la neurpona
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>a</mi><mn>1</mn></msub><annotation encoding="application/x-tex">a_1</annotation></semantics></math>
+es:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mi>o</mi><mi>f</mi><mi>t</mi><mi>m</mi><mi>a</mi><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>a</mi><mn>1</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><msup><mi>e</mi><msub><mi>a</mi><mn>1</mn></msub></msup><mrow><msup><mi>e</mi><msub><mi>a</mi><mn>1</mn></msub></msup><mo>+</mo><msup><mi>e</mi><mn>0</mn></msup></mrow></mfrac><mo>=</mo><mfrac><msup><mi>e</mi><msub><mi>a</mi><mn>1</mn></msub></msup><mrow><msup><mi>e</mi><msub><mi>a</mi><mn>1</mn></msub></msup><mo>+</mo><mn>1</mn></mrow></mfrac><mo>=</mo><mi>σ</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>a</mi><mn>1</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">Softmax)(a_1) = \frac{e^{a_1}}{e^{a_1} + e^0} = \frac{e^{a_1}}{e^{a_1} + 1} =\sigma(a_1)</annotation></semantics></math>
+De igual forma podemos comprobar que para
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>a</mi><mn>0</mn></msub><annotation encoding="application/x-tex">a_0</annotation></semantics></math>
+se da:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mi>o</mi><mi>f</mi><mi>t</mi><mi>m</mi><mi>a</mi><mi>x</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>a</mi><mn>0</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><msup><mi>e</mi><mn>0</mn></msup><mrow><msup><mi>e</mi><msub><mi>a</mi><mn>1</mn></msub></msup><mo>+</mo><msup><mi>e</mi><mn>0</mn></msup></mrow></mfrac><mo>=</mo><mfrac><mn>1</mn><mrow><mn>1</mn><mo>+</mo><msup><mi>e</mi><msub><mi>a</mi><mn>1</mn></msub></msup></mrow></mfrac><mo>=</mo><mi>σ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><msub><mi>a</mi><mn>1</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>1</mn><mo>−</mo><mi>σ</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>a</mi><mn>1</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">Softmax(a_0) = \frac{e^0}{e^{a_1} + e^0} = \frac{1}{1 + e^{a_1}} = \sigma(-a_1) = 1 - \sigma(a_1)</annotation></semantics></math>
+Es decir, cuando la salida responde a una variable binaria, y una de las
+neuronas de salida ha sido apagada, la estimación de las probabilidades
+de una red con Softmax son equivalentes a la estimación de una red con
+la función sigmoide. Por tanto, la función sigmoide se utiliza cuando la
+salida de la red es una sola neurona, siendo equivalente al uso de la
+función Softmax. Esta equivalencia también se puede ver en la derivada,
+pues al tener una sola neurona siempre tendremos que en la expresión
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϕ</mi><mi>j</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>δ</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub><mo>−</mo><msub><mi>ϕ</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\phi_j (\delta_{i,j} - \phi_i)</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>i</mi><mo>=</mo><mi>j</mi></mrow><annotation encoding="application/x-tex">i = j</annotation></semantics></math>,
+por lo que la derivada será
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϕ</mi><mi>i</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><msub><mi>ϕ</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\phi_i (1 - \phi_i)</annotation></semantics></math>,
+que es la derivada del sigmoide.</p>
+
+</body>
+</html>

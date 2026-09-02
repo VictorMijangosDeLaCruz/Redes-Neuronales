@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Redes feedforward</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Redes neuronales profundas</h1>
+<p class="date"> </p>
+</header>
+
+
+<h2 id="redes-neuronales-profundas"></h2>
+<p>En las secciones precedentes se ha definido a las redes feedforward y
+se ha mostrado que son aproximadores universales, es decir, que pueden
+aproximar funciones de familias más grandes. En general, se ha visto que
+basta con una sola capa oculta para que las redes neuronales sean
+aproximadores universales. En la práctica, sin embargo, es común que el
+cómputo se distribuya a partir de un número mayor de capas ocultas. Esto
+busca que el tamaño de las capas ocultas no sea demasiado grande, pero
+además permite que las capas ocultas se especialicen en representaciones
+particulares. Como veremos más adelante, podemos construir redes
+neuronales que tengan capas ocultas con arquitecturas particulares
+enfocadas a procesar cierto tipo de datos. Algunas de estas capas son
+las capas recurrentes, las capas convolucionales o las capas de
+atención.</p>
+<p>Por tanto, las redes neuronales suelen tener una profundidad
+considerable. Esta profundidad conlleva que las representaciones
+aprendidas en las capas ocultas sea difícil de interpretar. Estas
+representaciones son cada vez más abastractas, pues pasan por diferentes
+transformaciones consecutivamente. Es aquí cuando hablamos de
+aprendizaje profundo. Al hablar de redes neuronales profundas el término
+puede referirse a dos casos:</p>
+<ul>
+<li><p>Una red neuronal se dice que es profunda si cuenta con un número
+grande de capa ocultas.</p></li>
+<li><p>Una red neuronal se dice que es profunda si las representaciones
+de los datos en sus capas ocultas es abstracta.</p></li>
+</ul>
+<p>Ambas nociones están ligadas, pues a mayor profundidad, las
+representaciones obtenidas suelen ser más abstractas (por tanto, menos
+interpretables). Sin embargo, no es necesario tener una gran profundidad
+para tener representaciones abstractas. Un ejemplo de esto último son el
+aprendizaje de encajes o <em>embeddings</em> (véase la Sección <a
+href="#sec:text" data-reference-type="ref"
+data-reference="sec:text">[sec:text]</a>), donde las representaciones
+aprendidas no son fáciles de interpretar aunque se utilice una sola capa
+oculta. En general, hablaremos de aprendizaje profundo para referirnos
+al uso de redes neuronales con capas ocultas, sea una o varias.</p>
+<p>Debe tomarse en cuenta que el número de capas ocultas, así como de
+sus unidades tiene influencia en cómo se resuelve el problema. Algunos
+problemas requerirán de un número mayor de unidades ocultas que pueden
+estar en una o varias capas. Un mayor número de pesos (anchura y
+profundidad grande) hará que la red neuronal tenga mayor capacidad. Esto
+le permitirá adaptarse a problemas complejos, pero también será más
+susceptible al sobreajuste. Por tanto, la elección de número de
+parámetros es importante para el desempeño de nuestro modelo
+neuronal.</p>
+<div id="fig:ExHiddenNets" class="ex">
+<p><strong>Ejemplo 1.1</strong>. <em>Supongamos que queremos construir
+una red neuronal que sea capaz de aproximar una función polinomial dada
+por:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>f</mi><mo>*</mo></msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msup><mi>x</mi><mn>4</mn></msup></mrow><annotation encoding="application/x-tex">f^*(x) = x^4</annotation></semantics></math>
+Supongamos que en la red neuronal usaremos activaciones basadas en el
+logaritmo
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>ln</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\ln(x)</annotation></semantics></math>.
+Podemos entonces definir una red neuronal con una capa oculta de la
+siguiente forma:</em></p>
+<ul>
+<li><p><em>Capa oculta:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo>=</mo><mo>ln</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>w</mi><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">h = \ln(wx)</annotation></semantics></math>
+con
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>w</mi><mi>T</mi></msup><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">w^T = \begin{pmatrix}
+            1 &amp; 1 &amp; 1 &amp; 1
+        \end{pmatrix}</annotation></semantics></math>. Recuérdese que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>ln</mo><annotation encoding="application/x-tex">\ln</annotation></semantics></math>
+se aplica punto a punto. Por lo que el resultado de la capa oculta será
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>h</mi><mi>T</mi></msup><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mo>ln</mo><mi>x</mi></mtd><mtd columnalign="center" style="text-align: center"><mo>ln</mo><mi>x</mi></mtd><mtd columnalign="center" style="text-align: center"><mo>ln</mo><mi>x</mi></mtd><mtd columnalign="center" style="text-align: center"><mo>ln</mo><mi>x</mi></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">h^T = \begin{pmatrix}
+            \ln x &amp; \ln x &amp; \ln x &amp; \ln x
+        \end{pmatrix}</annotation></semantics></math></em></p></li>
+<li><p><em>Capa de salida: La capa de salida se dará por la función
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msup><mi>e</mi><mrow><mi>w</mi><mi>′</mi><mi>h</mi></mrow></msup></mrow><annotation encoding="application/x-tex">f(x) = e^{w&#39;h}</annotation></semantics></math>
+donde
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mrow><mi>w</mi><mi>′</mi></mrow><mi>T</mi></msup><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">{w&#39;}^T = \begin{pmatrix}
+            1 &amp; 1 &amp; 1 &amp; 1
+        \end{pmatrix}</annotation></semantics></math>. Por tanto,
+notamos que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mi>′</mi><mi>h</mi><mo>=</mo><mn>4</mn><mo>ln</mo><mi>x</mi></mrow><annotation encoding="application/x-tex">w&#39;h = 4\ln x</annotation></semantics></math>
+de donde obtenemos que
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msup><mi>x</mi><mn>4</mn></msup></mrow><annotation encoding="application/x-tex">f(x) = x^4</annotation></semantics></math>
+como queríamos.</em></p></li>
+</ul>
+<figure id="fig:ExHiddenNets">
+<figure>
+<img src="images/exNet1.png" />
+<figcaption><em>1 capa</em></figcaption>
+</figure>
+<figure>
+<img src="images/ExNet2.png" />
+<figcaption><em>2 capas</em></figcaption>
+</figure>
+<figure>
+<img src="images/ExNet3.png" />
+<figcaption><em>1 capa</em></figcaption>
+</figure>
+<figcaption><em>Diferentes redes neuronales para computar la función
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>x</mi><mn>4</mn></msup><annotation encoding="application/x-tex">x^4</annotation></semantics></math></em></figcaption>
+</figure>
+<p><em>La red anterior es la más intuitiva, pero no es única. Podemos
+definir una red con dos capas ocultas que nos dé el mismo resultado de
+la siguiente forma:</em></p>
+<ul>
+<li><p><em>Capa oculta 1: Definida como
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>=</mo><mo>ln</mo><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow><mi>x</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">h^{(1)} = \ln\big( \begin{pmatrix}
+            1 &amp; 1
+        \end{pmatrix}x \big)</annotation></semantics></math>, cuyo
+resultado será:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mo>ln</mo><mi>x</mi></mtd><mtd columnalign="center" style="text-align: center"><mo>ln</mo><mi>x</mi></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">h^{(1)} = \begin{pmatrix}
+            \ln x &amp; \ln x
+        \end{pmatrix}</annotation></semantics></math></em></p></li>
+<li><p><em>Capa oculta 2: La definimos como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>2</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup></mrow><annotation encoding="application/x-tex">h^{(2)} = \begin{pmatrix}
+            1 &amp; 1 \\ 1 &amp; 1
+        \end{pmatrix} h^{(1)}</annotation></semantics></math> Cuyo
+resultado es el vector
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>2</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>2</mn><mo>ln</mo><mi>x</mi></mtd><mtd columnalign="center" style="text-align: center"><mn>2</mn><mo>ln</mo><mi>x</mi></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">h^{(2)} = \begin{pmatrix}
+            2 \ln x &amp; 2 \ln x
+        \end{pmatrix}</annotation></semantics></math></em></p></li>
+<li><p><em>Capa de salida: Por último, definimos la salida como
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msup><mi>e</mi><mrow><mi>w</mi><msup><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>2</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup></mrow></msup></mrow><annotation encoding="application/x-tex">f(x) = e^{wh^{(2)}}</annotation></semantics></math>
+con
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>w</mi><mi>T</mi></msup><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">w^T = \begin{pmatrix}
+            1 &amp; 1
+        \end{pmatrix}</annotation></semantics></math>, lo que nos da el
+resultado esperado
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msup><mi>x</mi><mn>4</mn></msup></mrow><annotation encoding="application/x-tex">f(x) = x^4</annotation></semantics></math></em></p></li>
+</ul>
+<p><em>En este último caso, la segunda capa oculta no tiene función de
+activación, por lo que podemos reducir esta capa con la siguiente capa
+tomando en cuenta el producto de sus pesos:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>2</mn></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mn>2</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\begin{pmatrix}
+        1 &amp; 1
+    \end{pmatrix} \begin{pmatrix}
+        1 &amp; 1 \\ 1 &amp; 1
+    \end{pmatrix} = \begin{pmatrix}
+        2 \\ 2
+    \end{pmatrix}</annotation></semantics></math> Es decir, podemos
+tomar una red con una sola capa oculta, la cual esté definida como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>1</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">h = \begin{pmatrix}
+        1 &amp; 1
+    \end{pmatrix}</annotation></semantics></math> Y la capa de salida
+esté dada como:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msup><mi>e</mi><mrow><mrow><mo stretchy="true" form="prefix">(</mo><mtable><mtr><mtd columnalign="center" style="text-align: center"><mn>2</mn></mtd><mtd columnalign="center" style="text-align: center"><mn>2</mn></mtd></mtr></mtable><mo stretchy="true" form="postfix">)</mo></mrow><mi>h</mi></mrow></msup><mo>=</mo><msup><mi>e</mi><mrow><mn>2</mn><msub><mi>h</mi><mn>1</mn></msub><mo>+</mo><mn>2</mn><msub><mi>h</mi><mn>2</mn></msub></mrow></msup></mrow><annotation encoding="application/x-tex">f(x) = e^{\begin{pmatrix}
+        2 &amp; 2
+    \end{pmatrix} h} = e^{2 h_1 + 2 h_2}</annotation></semantics></math>
+La activación exponencial nos daría la salida esperada
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msup><mi>x</mi><mn>4</mn></msup></mrow><annotation encoding="application/x-tex">f(x) = x^4</annotation></semantics></math>.
+En la Figura <a href="#fig:ExHiddenNets" data-reference-type="ref"
+data-reference="fig:ExHiddenNets">1.1</a> se muestran gráficamente las
+diferentes redes que pueden resolver este problema. Incluso se puede
+simplificar todavía más la red.</em></p>
+</div>
+<p>Las redes neuronales profundas deben de obtener los pesos adecuados
+para resolver cada problema particular. La arquitectura de la red
+(anchura, profundidad, funciones de activación) debe ser especificada en
+cada caso por quien construya la red. Por tanto, sin importar la
+arquitectura, la red debe aprender a resolver el problema. En la
+práctica es usual utilizar arquitecturas que cuenten con un número
+suficiente de pesos (profundidad y anchura) y nos enfocamos en aprender
+adecuadamente con base en los datos. Para evitar el sobreajuste, se
+utilizan técnicas de regularización (Capítulo <a
+href="#chap:regularization" data-reference-type="ref"
+data-reference="chap:regularization">[chap:regularization]</a>), sin
+enfocarse en modificar la arquitectura. Aquí hemos ejemplificado redes
+donde conocemos pesos que son adecuados para el problema. Las redes
+neuronales pueden aprender estos pesos; para esto es necesario
+profundizar en el aprendizaje en las redes profundas, lo que abordamos
+en el siguiente capítulo.</p>
+
+</body>
+</html>
